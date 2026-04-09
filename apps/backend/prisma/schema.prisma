@@ -1,0 +1,95 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  ORGANIZER
+  USER
+}
+
+enum EventStatus {
+  UPCOMING
+  ONGOING
+  COMPLETED
+  CANCELLED
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      Role     @default(USER)
+  isBanned  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  events    Event[]   @relation("OrganizedEvents")
+  bookings  Booking[]
+  reviews   Review[]
+}
+
+model Event {
+  id          String      @id @default(uuid())
+  title       String
+  description String
+  date        DateTime
+  location    String
+  image       String?
+  category    String
+  tags        String[]
+  status      EventStatus @default(UPCOMING)
+  isApproved  Boolean     @default(false)
+  maxTickets  Int
+  price       Float       @default(0)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  organizerId String
+  organizer   User    @relation("OrganizedEvents", fields: [organizerId], references: [id])
+
+  bookings    Booking[]
+  reviews     Review[]
+}
+
+model Booking {
+  id        String        @id @default(uuid())
+  status    BookingStatus @default(PENDING)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+
+  eventId   String
+  event     Event    @relation(fields: [eventId], references: [id])
+
+  @@unique([userId, eventId])
+}
+
+model Review {
+  id        String   @id @default(uuid())
+  rating    Int
+  comment   String?
+  createdAt DateTime @default(now())
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+
+  eventId   String
+  event     Event    @relation(fields: [eventId], references: [id])
+
+  @@unique([userId, eventId])
+}

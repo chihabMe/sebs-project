@@ -1,0 +1,88 @@
+@baseUrl = http://localhost:4000/api
+
+### 1. Health Check
+GET http://localhost:4000/health
+
+---
+### 2. Register a New User
+# @name registerUser
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "password": "password123",
+  "name": "John Doe",
+  "role": "USER"
+}
+
+---
+### 3. Register an Organizer
+# @name registerOrganizer
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "email": "organizer@example.com",
+  "password": "password123",
+  "name": "Event Master",
+  "role": "ORGANIZER"
+}
+
+---
+### 4. Login User
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "organizer@example.com",
+  "password": "password123"
+}
+
+### -> Note: Copy the "token" from the login response and paste it below for protected routes!
+@authToken = YOUR_TOKEN_HERE
+
+---
+### 5. Create an Event (Requires ORGANIZER or ADMIN role)
+POST {{baseUrl}}/events
+Authorization: Bearer {{authToken}}
+Content-Type: multipart/form-data; boundary=boundary
+
+--boundary
+Content-Disposition: form-data; name="title"
+
+Awesome Tech Conference 2026
+--boundary
+Content-Disposition: form-data; name="description"
+
+The biggest tech conference in the world, featuring AI and Web3.
+--boundary
+Content-Disposition: form-data; name="date"
+
+2026-05-15T10:00:00Z
+--boundary
+Content-Disposition: form-data; name="location"
+
+New York City
+--boundary
+Content-Disposition: form-data; name="category"
+
+Technology
+--boundary
+Content-Disposition: form-data; name="tags"
+
+AI, Web3, Networking
+--boundary
+Content-Disposition: form-data; name="maxTickets"
+
+500
+--boundary
+Content-Disposition: form-data; name="price"
+
+99.99
+--boundary--
+
+---
+### 6. Get All Approved Events
+GET {{baseUrl}}/events
