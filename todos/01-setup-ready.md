@@ -17,8 +17,8 @@
 - [x] Implement Auth module (Login/Register) in backend
 - [x] Create Event Management logic (Controllers, Routes).
 - [x] Refactor Auth to use Access & Refresh Tokens securely stored in HTTP-only cookies.
-- [ ] Implement robust Booking system & Review Module.
-- [ ] Implement OpenAPI/Swagger API documentation.
+- [x] Implement robust Booking system & Review Module.
+- [x] Implement OpenAPI/Swagger API documentation.
 - [ ] Prepare Dockerfiles (Frontend multi-stage with Nginx) and CI/CD for Production.
 
 ## Next Steps
