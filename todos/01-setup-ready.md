@@ -19,7 +19,7 @@
 - [x] Refactor Auth to use Access & Refresh Tokens securely stored in HTTP-only cookies.
 - [x] Implement robust Booking system & Review Module.
 - [x] Implement OpenAPI/Swagger API documentation.
-- [ ] Prepare Dockerfiles (Frontend multi-stage with Nginx) and CI/CD for Production.
+- [x] Prepare Dockerfiles (Frontend multi-stage with Nginx) and CI/CD for Production.
 
 ## Next Steps
 1. Refactor Auth to use HTTP-only cookies and Refresh tokens.
