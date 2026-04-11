@@ -9,13 +9,17 @@ import authRoutes from './routes/auth.routes';
 import eventRoutes from './routes/event.routes';
 import bookingRoutes from './routes/booking.routes';
 import reviewRoutes from './routes/review.routes';
+import userRoutes from './routes/user.routes';
+import adminRoutes from './routes/admin.routes';
+import organizerRoutes from './routes/organizer.routes';
+import eventFormRoutes from './routes/event-form.routes';
 import { errorHandler } from './middlewares/errorHandler';
 
 dotenv.config();
 
 const app = express();
 
-app.use(cors({ origin: 'http://localhost:3000', credentials: true }));
+app.use(cors({ origin: 'http://localhost:5173', credentials: true }));
 app.use(express.json());
 app.use(cookieParser());
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
@@ -29,6 +33,10 @@ app.use('/api/auth', authRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/reviews', reviewRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/organizer', organizerRoutes);
+app.use('/api/event-forms', eventFormRoutes);
 
 // Health check
 app.get('/health', (req, res) => {
