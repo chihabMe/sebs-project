@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>User Profile | Electric Editorial</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "secondary": "#00675e",
+                    "on-tertiary": "#ffeff4",
+                    "tertiary-dim": "#892a65",
+                    "surface-bright": "#faf4ff",
+                    "error-dim": "#a70138",
+                    "surface-dim": "#dacdff",
+                    "tertiary-fixed": "#fd8bca",
+                    "primary-container": "#9795ff",
+                    "background": "#faf4ff",
+                    "tertiary-container": "#fd8bca",
+                    "primary-fixed-dim": "#8885ff",
+                    "surface-tint": "#4a40e0",
+                    "on-background": "#32294f",
+                    "secondary-fixed-dim": "#7ae7d8",
+                    "secondary-fixed": "#89f5e7",
+                    "secondary-dim": "#005a52",
+                    "outline-variant": "#b2a6d5",
+                    "primary": "#4a40e0",
+                    "on-tertiary-fixed-variant": "#6d104e",
+                    "secondary-container": "#89f5e7",
+                    "surface": "#faf4ff",
+                    "on-secondary-fixed": "#004841",
+                    "surface-container-highest": "#e2d7ff",
+                    "on-error-container": "#510017",
+                    "tertiary-fixed-dim": "#ee7ebc",
+                    "surface-container-lowest": "#ffffff",
+                    "on-secondary-fixed-variant": "#00675e",
+                    "on-secondary": "#bffff5",
+                    "surface-variant": "#e2d7ff",
+                    "on-primary": "#f4f1ff",
+                    "inverse-on-surface": "#a296c4",
+                    "surface-container": "#ede4ff",
+                    "inverse-surface": "#10062d",
+                    "on-secondary-container": "#005c54",
+                    "tertiary": "#983772",
+                    "error": "#b41340",
+                    "primary-dim": "#3d30d4",
+                    "on-surface": "#32294f",
+                    "outline": "#7b719c",
+                    "error-container": "#f74b6d",
+                    "on-primary-fixed": "#000000",
+                    "surface-container-high": "#e8deff",
+                    "surface-container-low": "#f5eeff",
+                    "on-tertiary-fixed": "#360024",
+                    "inverse-primary": "#8582ff",
+                    "primary-fixed": "#9795ff",
+                    "on-surface-variant": "#5f557f",
+                    "on-primary-fixed-variant": "#1a0099",
+                    "on-tertiary-container": "#610244",
+                    "on-primary-container": "#14007e",
+                    "on-error": "#ffefef"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "1.5rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Plus Jakarta Sans"],
+                    "body": ["Inter"],
+                    "label": ["Inter"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body { font-family: 'Inter', sans-serif; }
+        h1, h2, h3 { font-family: 'Plus Jakarta Sans', sans-serif; }
+    </style>
+</head>
+<body class="bg-background text-on-background min-h-screen">
+<!-- TopAppBar Shell -->
+<header class="fixed top-0 w-full z-50 bg-[#faf4ff]/80 backdrop-blur-xl transition-colors">
+<nav class="flex items-center justify-between px-8 h-20 w-full max-w-full mx-auto font-['Plus_Jakarta_Sans'] tracking-tight">
+<div class="text-2xl font-bold tracking-tighter text-[#4a40e0]">
+                Electric Editorial
+            </div>
+<div class="hidden md:flex items-center gap-8">
+<a class="text-[#5f557f] hover:text-[#4a40e0] transition-colors" href="#">Discover</a>
+<a class="text-[#4a40e0] border-b-2 border-[#4a40e0] pb-1 font-bold" href="#">My Bookings</a>
+<a class="text-[#5f557f] hover:text-[#4a40e0] transition-colors" href="#">Create Event</a>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 hover:bg-[#f5eeff] rounded-full transition-colors active:scale-95">
+<span class="material-symbols-outlined text-[#4a40e0]" data-icon="notifications">notifications</span>
+</button>
+<button class="p-2 hover:bg-[#f5eeff] rounded-full transition-colors active:scale-95">
+<span class="material-symbols-outlined text-[#4a40e0]" data-icon="settings">settings</span>
+</button>
+<div class="w-10 h-10 rounded-full bg-surface-container-highest overflow-hidden border-2 border-primary-container">
+<img alt="User profile and role switcher" class="w-full h-full object-cover" data-alt="portrait of a young woman with a creative professional look, soft natural lighting, purple background tint" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCpDVQX_6meVhfqw9Mm25iyyxSBKTf-mjS1Zj2sxFXZb5BV_oRwew0WGrQR-8GK59CYquHZwZ9VD4iorcARl81dwCwMNY64XLR6rCWS8f3suyu8IQ50AdPrKZW5sigHiVewM3g1PbHB_R5zbOgwEp4u9jFYWXQB-OKDTsOxn0SbAKyNzCmPegsPUrHCvy6VqBVWTn_WJHJG18Jl69G8Mcr8j3tuDm7XSGwnQ7OBydgq76CWUrtLkQrYg66yoXHW4baQibucqzbK-Ww"/>
+</div>
+</div>
+</nav>
+</header>
+<main class="pt-32 pb-24 px-6 md:px-12 max-w-7xl mx-auto">
+<!-- Hero Profile Section: Intentional Asymmetry -->
+<section class="flex flex-col md:flex-row items-end gap-8 mb-20 relative">
+<div class="relative group">
+<div class="w-48 h-48 md:w-56 md:h-56 rounded-xl overflow-hidden shadow-2xl rotate-3 transition-transform hover:rotate-0">
+<img alt="Attendee Avatar" class="w-full h-full object-cover" data-alt="professional close-up portrait of a woman with vibrant lighting and indigo tones in the background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDWp2bkdK7IW_SIKltz-2mwcyFHCAoyO5SJxpgsIayXqEsSW4dp1JOoTFxqZ9kLdGJuIh35X20QxduRiD4kAQtdOYwR2rqXRJceTQ_sgdSJs6qXeWIF1dNfpHa_z0929C_Q0xJwicQtw51raMtXiIjXqQt-d_pZ9DzvzQPZ72sSCCYX_A7MjQTHb3Tbwg-z5FAgztADDfxN54pkhUTUGePTabh1ak84IcQ1c8lvgaVfd1Y7NnomdcwNRrn5w_KCRQIfateLZYNi52Q"/>
+</div>
+<div class="absolute -bottom-4 -right-4 bg-secondary-container text-on-secondary-container px-4 py-2 rounded-full text-xs font-bold tracking-widest uppercase shadow-lg">
+                    Attendee
+                </div>
+</div>
+<div class="flex-1 space-y-2">
+<div class="inline-flex items-center gap-2 px-3 py-1 bg-surface-container-low rounded-full">
+<span class="w-2 h-2 rounded-full bg-secondary animate-pulse"></span>
+<span class="text-[10px] font-bold tracking-tighter text-on-surface-variant uppercase">Active Pulse Member</span>
+</div>
+<h1 class="text-5xl md:text-7xl font-extrabold tracking-tighter text-on-background">
+                    Elena <span class="text-primary">Rodriguez</span>
+</h1>
+<p class="text-on-surface-variant max-w-md font-medium text-lg leading-relaxed">
+                    Digital Curator &amp; Live Music Enthusiast. Based in London. 24 Events Attended.
+                </p>
+</div>
+<div class="hidden lg:block absolute top-0 right-0 opacity-10 pointer-events-none">
+<span class="material-symbols-outlined text-[200px]" data-icon="electric_bolt">electric_bolt</span>
+</div>
+</section>
+<!-- Booked Events Grid: Bento Style -->
+<section>
+<div class="flex items-center justify-between mb-10">
+<h2 class="text-3xl font-bold tracking-tight text-on-background flex items-center gap-3">
+                    My Bookings 
+                    <span class="text-sm font-normal bg-primary/10 text-primary px-3 py-1 rounded-full">4 Upcoming</span>
+</h2>
+<div class="flex gap-2">
+<button class="p-2 bg-surface-container-low rounded-full text-primary hover:bg-surface-container-highest transition-colors">
+<span class="material-symbols-outlined" data-icon="grid_view">grid_view</span>
+</button>
+<button class="p-2 text-outline hover:bg-surface-container-low rounded-full transition-colors">
+<span class="material-symbols-outlined" data-icon="list">list</span>
+</button>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+<!-- Card 1: Confirmed -->
+<div class="group relative bg-surface-container-lowest rounded-xl overflow-hidden transition-all hover:-translate-y-2">
+<div class="h-64 overflow-hidden relative">
+<img alt="Neon Underground" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="vibrant nightclub interior with neon lights and a crowd dancing in a high-end atmosphere" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAMo0Rbayq4Lyljpf-4RtqyO6UiuPGeOnVqO1mhs-6K-PU7gaoAkJHL2Yc_9n4WRV8nB0qo2BicXv0GzGJv46ITQK1g7SDVOmlPVUllN01HKMMaFidCxXV6BP4T8PgXwPWZBL1xdjO10XUuC7xRcIJU8Con0isS27QCAZnMqyZpuXPTzZpuJepjkZMFMj7C441trz4rsqi8CPdCjxDBqjvLZm1md-l7DaklBpfiYSLlKic-w29c1K6D4rI_mn5Tk_OW_3R_eNT8crg"/>
+<div class="absolute top-4 right-4 bg-surface-container-lowest/90 backdrop-blur px-3 py-1.5 rounded-full border border-primary/10 text-primary text-xs font-bold shadow-sm">
+                            $85.00
+                        </div>
+<div class="absolute bottom-4 left-4 flex items-center gap-2">
+<span class="px-3 py-1 rounded-full bg-secondary/90 backdrop-blur text-white text-[10px] font-black uppercase tracking-widest">
+                                Confirmed
+                            </span>
+</div>
+</div>
+<div class="p-6 space-y-4">
+<div>
+<h3 class="text-xl font-bold text-on-background leading-tight">Neon Underground: 001</h3>
+<p class="text-sm text-on-surface-variant mt-1">Friday, Oct 24 • The Warehouse District</p>
+</div>
+<button class="w-full py-4 bg-primary text-on-primary rounded-xl font-bold flex items-center justify-center gap-2 transition-all hover:bg-primary-dim active:scale-95 shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined" data-icon="confirmation_number">confirmation_number</span>
+                            Download Ticket
+                        </button>
+</div>
+</div>
+<!-- Card 2: Pending -->
+<div class="group relative bg-surface-container-lowest rounded-xl overflow-hidden transition-all hover:-translate-y-2">
+<div class="h-64 overflow-hidden relative">
+<img alt="Kinetic Summit" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 grayscale group-hover:grayscale-0" data-alt="modern tech conference stage with high-end digital screens and dramatic purple lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuApB1QIUR4siutKeqi4NDq03DG9ROQImQB-8t3wW8ZrX7U_ZA1Zf4vN24fROTztCVaeeLsf9fVLTBpVpM2718PzPGqdTT2aPrXj_4qXMPbrVTzIQXkl5P-ree6hq23ckye1qp1xuv5MWdbh08mS5uhQQM4CCU6YJpWQF99WdcRa7P4ZtGE122xuomafkXMtKp9hboe7U0dAsEZwEc7HfsjvD1AW8oS-vVFA9Ac_DV1uQ_lHgpP8qIcosvui2CFans51HjQrWdtn5ds"/>
+<div class="absolute top-4 right-4 bg-surface-container-lowest/90 backdrop-blur px-3 py-1.5 rounded-full border border-primary/10 text-primary text-xs font-bold shadow-sm">
+                            $250.00
+                        </div>
+<div class="absolute bottom-4 left-4 flex items-center gap-2">
+<span class="px-3 py-1 rounded-full bg-surface-container-highest/90 backdrop-blur text-on-surface-variant text-[10px] font-black uppercase tracking-widest">
+                                Pending
+                            </span>
+</div>
+</div>
+<div class="p-6 space-y-4">
+<div>
+<h3 class="text-xl font-bold text-on-background leading-tight">Kinetic Design Summit</h3>
+<p class="text-sm text-on-surface-variant mt-1">Monday, Nov 12 • Royal Albert Hall</p>
+</div>
+<button class="w-full py-4 bg-surface-container-high text-primary rounded-xl font-bold flex items-center justify-center gap-2 transition-all hover:bg-surface-container-highest active:scale-95">
+<span class="material-symbols-outlined" data-icon="hourglass_empty">hourglass_empty</span>
+                            Processing Payment
+                        </button>
+</div>
+</div>
+<!-- Card 3: Confirmed -->
+<div class="group relative bg-surface-container-lowest rounded-xl overflow-hidden transition-all hover:-translate-y-2">
+<div class="h-64 overflow-hidden relative">
+<img alt="Electric Jazz" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="atmospheric jazz lounge with a single spotlight on a vintage microphone and subtle blue hazy smoke" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBXPQwujSDJnj3oD_3RCLMDw4ATH8AJl7FBFqmSR5wzKhp3eujqZMWzFMjkJqw7SjatVg_Bb63ZkWK4Hft8dE97gLLXOuPqOaLUtkaQ5RjtMfCudvSMZQ53h3uLU7TRIYFg6cixXkFvo6eu2c0nxY5wHNuDJ_BLjUOQ-XwOF5gFeZCb7vsAharWhE-8aNcyf1UG8JtmHXVAfW6ZeViuE6MmGQ8SFi6RxsfDUXTHjOSRmUdBbtJQ5kSWEXrBF-lXx6lRPtL92GEiA1M"/>
+<div class="absolute top-4 right-4 bg-surface-container-lowest/90 backdrop-blur px-3 py-1.5 rounded-full border border-primary/10 text-primary text-xs font-bold shadow-sm">
+                            $45.00
+                        </div>
+<div class="absolute bottom-4 left-4 flex items-center gap-2">
+<span class="px-3 py-1 rounded-full bg-secondary/90 backdrop-blur text-white text-[10px] font-black uppercase tracking-widest">
+                                Confirmed
+                            </span>
+</div>
+</div>
+<div class="p-6 space-y-4">
+<div>
+<h3 class="text-xl font-bold text-on-background leading-tight">Electric Jazz Sessions</h3>
+<p class="text-sm text-on-surface-variant mt-1">Saturday, Nov 15 • Blue Note Attic</p>
+</div>
+<button class="w-full py-4 bg-primary text-on-primary rounded-xl font-bold flex items-center justify-center gap-2 transition-all hover:bg-primary-dim active:scale-95 shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined" data-icon="confirmation_number">confirmation_number</span>
+                            Download Ticket
+                        </button>
+</div>
+</div>
+</div>
+</section>
+<!-- Membership Perks: Custom Editorial Section -->
+<section class="mt-24 p-12 bg-primary-container/20 rounded-xl relative overflow-hidden">
+<div class="relative z-10 grid md:grid-cols-2 gap-12 items-center">
+<div class="space-y-6">
+<h2 class="text-4xl font-extrabold tracking-tighter leading-none">Your Kinetic <br/>Membership Benefits</h2>
+<p class="text-on-surface-variant text-lg">As an attendee with curated status, you unlock exclusive access to the Electric Backstage area and early bird tickets for all editorial sessions.</p>
+<div class="flex flex-wrap gap-4">
+<div class="bg-surface-container-lowest p-4 rounded-xl flex items-center gap-4">
+<span class="material-symbols-outlined text-secondary" data-icon="stars">stars</span>
+<span class="text-xs font-bold uppercase tracking-widest">Priority Entry</span>
+</div>
+<div class="bg-surface-container-lowest p-4 rounded-xl flex items-center gap-4">
+<span class="material-symbols-outlined text-primary" data-icon="local_bar">local_bar</span>
+<span class="text-xs font-bold uppercase tracking-widest">Lounge Access</span>
+</div>
+</div>
+</div>
+<div class="flex justify-center md:justify-end">
+<div class="w-64 h-64 bg-primary rounded-full blur-3xl opacity-20 absolute top-0 right-0"></div>
+<img alt="Perks Visual" class="w-full max-w-sm rounded-xl rotate-6 shadow-2xl" data-alt="abstract close-up of light reflecting on glass and metal surfaces, creating a luxurious and high-energy feeling" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBoTXRsyxde-wDtP7a8ykqB3W5czUiUvSJVVEquJfAt-89KQgDAqdKQo2t2an8QHGQInFCHaTDadFDjohTytgII6JspJWNw4tcWYeE_s_-k7TQ5X9tbB650OUM5B0wPxRt2Cct-DGeHrof7u71u38D78o8MWU2CmTz8cdq9LO8HYZTrDn8euarNox_gb3F2Eh7_NaybTgSD0ZWbgKX3DrtvTR7vkmbeg1ZV13OXti6mDYtpBWlfXAc9UKggFmA-OKEvttjfQcwS1CA"/>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer Shell -->
+<footer class="w-full py-12 bg-[#faf4ff] dark:bg-[#1a1629] border-t border-[#b2a6d5]/10 flex flex-col items-center justify-center gap-6 px-4">
+<div class="flex flex-wrap justify-center gap-8 font-['Inter'] text-xs uppercase tracking-widest text-[#5f557f]">
+<a class="hover:text-[#4a40e0] transition-colors" href="#">Privacy Policy</a>
+<a class="hover:text-[#4a40e0] transition-colors" href="#">Terms of Service</a>
+<a class="hover:text-[#4a40e0] transition-colors" href="#">Organizer FAQ</a>
+<a class="hover:text-[#4a40e0] transition-colors" href="#">Contact Support</a>
+</div>
+<p class="font-['Inter'] text-xs uppercase tracking-widest text-[#5f557f]/60">
+            © 2024 The Electric Editorial. Kinetic Curation for Live Events.
+        </p>
+</footer>
+<!-- FAB Suppression: Not rendered on Profile/Bookings as per mandate -->
+</body></html>
