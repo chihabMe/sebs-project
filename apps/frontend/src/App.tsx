@@ -1,24 +1,45 @@
-import { useState } from 'react'
+import { Routes, Route } from 'react-router-dom';
+import HomePage from './pages/HomePage';
+import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
+import ProfilePage from './pages/ProfilePage';
+import DashboardPage from './pages/DashboardPage';
+import BrowseEventsPage from './pages/BrowseEventsPage';
+import EventDetailsPage from './pages/EventDetailsPage';
+import OrganizerDashboardPage from './pages/OrganizerDashboardPage';
+import EventFormPage from './pages/EventFormPage';
+import EventAttendeesPage from './pages/EventAttendeesPage';
+import ManageEventFormPage from './pages/ManageEventFormPage';
+import AdminDashboardPage from './pages/AdminDashboardPage';
+import ProtectedRoute from './components/auth/ProtectedRoute';
 
 function App() {
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-      <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full text-center">
-        <h1 className="text-3xl font-bold text-blue-600 mb-4">SEBS</h1>
-        <p className="text-gray-600 mb-6">
-          Welcome to the Smart Event Booking System.
-        </p>
-        <div className="space-y-4">
-          <button className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition">
-            Browse Events
-          </button>
-          <button className="w-full border border-blue-600 text-blue-600 py-2 rounded hover:bg-blue-50 transition">
-            Login
-          </button>
-        </div>
-      </div>
-    </div>
-  )
+    <Routes>
+      {/* Public Routes */}
+      <Route path="/" element={<HomePage />} />
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/register" element={<RegisterPage />} />
+      <Route path="/events" element={<BrowseEventsPage />} />
+      <Route path="/events/:id" element={<EventDetailsPage />} />
+
+      {/* Shared Protected Routes */}
+      <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+
+      {/* Attendee Only Routes */}
+      <Route path="/dashboard" element={<ProtectedRoute allowedRoles={['USER']}><DashboardPage /></ProtectedRoute>} />
+
+      {/* Organizer/Admin Only Routes */}
+      <Route path="/organizer" element={<ProtectedRoute allowedRoles={['ORGANIZER', 'ADMIN']}><OrganizerDashboardPage /></ProtectedRoute>} />
+      <Route path="/organizer/events/new" element={<ProtectedRoute allowedRoles={['ORGANIZER', 'ADMIN']}><EventFormPage /></ProtectedRoute>} />
+      <Route path="/organizer/events/:id/edit" element={<ProtectedRoute allowedRoles={['ORGANIZER', 'ADMIN']}><EventFormPage /></ProtectedRoute>} />
+      <Route path="/organizer/events/:id/attendees" element={<ProtectedRoute allowedRoles={['ORGANIZER', 'ADMIN']}><EventAttendeesPage /></ProtectedRoute>} />
+      <Route path="/organizer/events/:id/form" element={<ProtectedRoute allowedRoles={['ORGANIZER', 'ADMIN']}><ManageEventFormPage /></ProtectedRoute>} />
+
+      {/* Admin Only Routes */}
+      <Route path="/admin" element={<ProtectedRoute allowedRoles={['ADMIN']}><AdminDashboardPage /></ProtectedRoute>} />
+    </Routes>
+  );
 }
 
-export default App
+export default App;
