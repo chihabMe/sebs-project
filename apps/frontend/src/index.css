@@ -1,1 +1,65 @@
 @import "tailwindcss";
+@config "../tailwind.config.ts";
+
+@theme {
+  --color-on-tertiary-fixed: #360024;
+  --color-tertiary-container: #fd8bca;
+  --color-on-surface: #32294f;
+  --color-on-error-container: #510017;
+  --color-outline: #7b719c;
+  --color-on-background: #32294f;
+  --color-primary: #4a40e0;
+  --color-background: #faf4ff;
+  --color-surface-container: #ede4ff;
+  --color-secondary-fixed-dim: #7ae7d8;
+  --color-primary-dim: #3d30d4;
+  --color-secondary-container: #89f5e7;
+  --color-on-tertiary: #ffeff4;
+  --color-tertiary-fixed: #fd8bca;
+  --color-on-secondary-fixed: #004841;
+  --color-surface-container-high: #e8deff;
+  --color-outline-variant: #b2a6d5;
+  --color-inverse-primary: #8582ff;
+  --color-tertiary: #983772;
+  --color-error-dim: #a70138;
+  --color-surface-bright: #faf4ff;
+  --color-surface-container-low: #f5eeff;
+  --color-inverse-surface: #10062d;
+  --color-surface-container-highest: #e2d7ff;
+  --color-on-primary-fixed: #000000;
+  --color-surface-dim: #dacdff;
+  --color-on-error: #ffefef;
+  --color-on-secondary-fixed-variant: #00675e;
+  --color-on-tertiary-fixed-variant: #6d104e;
+  --color-surface-variant: #e2d7ff;
+  --color-secondary-fixed: #89f5e7;
+  --color-on-tertiary-container: #610244;
+  --color-on-secondary-container: #005c54;
+  --color-surface-tint: #4a40e0;
+  --color-on-primary-fixed-variant: #1a0099;
+  --color-error-container: #f74b6d;
+  --color-on-secondary: #bffff5;
+  --color-primary-container: #9795ff;
+  --color-error: #b41340;
+  --color-secondary: #00675e;
+  --color-on-primary: #f4f1ff;
+  --color-primary-fixed-dim: #8885ff;
+  --color-surface: #faf4ff;
+  --color-secondary-dim: #005a52;
+  --color-on-primary-container: #14007e;
+  --color-primary-fixed: #9795ff;
+  --color-tertiary-fixed-dim: #ee7ebc;
+  --color-tertiary-dim: #892a65;
+  --color-on-surface-variant: #5f557f;
+  --color-surface-container-lowest: #ffffff;
+  --color-inverse-on-surface: #a296c4;
+
+  --font-headline: "Plus Jakarta Sans", sans-serif;
+  --font-body: "Inter", sans-serif;
+  --font-label: "Inter", sans-serif;
+
+  --radius-DEFAULT: 0.25rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+  --radius-full: 9999px;
+}
