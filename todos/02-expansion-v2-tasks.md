@@ -22,7 +22,7 @@
   - *Commit:* `feat: add attendance analytics endpoint`
 - [x] Build GitHub-style attendance Heatmap component.
   - *Commit:* `feat: build attendance heatmap component`
-- [ ] Add Edit Profile form (update bio, avatar, details) and integrate with backend API.
+- [x] Add Edit Profile form (update bio, avatar, details) and integrate with backend API.
   - *Commit:* `feat: add edit profile functionality`
 - [ ] Build Public Profile view/page showing user stats and heatmap to others.
   - *Commit:* `feat: add public profile page`

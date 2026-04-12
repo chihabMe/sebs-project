@@ -11,6 +11,11 @@ export const getAttendanceHistory = async () => {
   return response.data.data;
 };
 
+export const updateProfile = async (data: any) => {
+  const response = await api.put<ApiResponse<UserDto>>('/users/profile', data);
+  return response.data;
+};
+
 export const logout = async () => {
   const response = await api.post<ApiResponse>('/auth/logout');
   return response.data;

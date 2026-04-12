@@ -1,9 +1,12 @@
+import { useState } from 'react';
 import Header from '../components/layout/Header';
 import { useAuth } from '../hooks/useAuth';
 import AttendanceHeatmap from '../components/profile/AttendanceHeatmap';
+import EditProfileForm from '../components/profile/EditProfileForm';
 
 export default function ProfilePage() {
   const { user } = useAuth();
+  const [isEditing, setIsEditing] = useState(false);
 
   return (
     <div className="bg-surface text-on-surface min-h-screen flex flex-col">
@@ -41,11 +44,18 @@ export default function ProfilePage() {
 
             <AttendanceHeatmap />
             
-            <div className="pt-8 border-t border-outline-variant/10">
-              <button className="bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-bold px-6 py-3 rounded-xl transition-all border border-outline-variant/30">
-                Edit Profile
-              </button>
-            </div>
+            {isEditing ? (
+              <EditProfileForm onSuccess={() => setIsEditing(false)} />
+            ) : (
+              <div className="pt-8 border-t border-outline-variant/10">
+                <button 
+                  onClick={() => setIsEditing(true)}
+                  className="bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-bold px-6 py-3 rounded-xl transition-all border border-outline-variant/30"
+                >
+                  Edit Profile
+                </button>
+              </div>
+            )}
           </section>
         </div>
       </main>
