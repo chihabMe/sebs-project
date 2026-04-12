@@ -108,8 +108,13 @@ export default function AdminDashboardPage() {
           <section className="bg-surface-container-low rounded-3xl p-8 border border-primary/5 shadow-sm overflow-hidden flex flex-col h-[500px]">
             <div className="flex items-center justify-between mb-6 shrink-0">
               <h3 className="text-2xl font-bold font-headline text-primary">Identity Registry</h3>
-              <div className="px-3 py-1 bg-primary/5 text-primary text-[10px] font-black rounded-full border border-primary/10 uppercase tracking-widest">
-                Management Mode
+              <div className="flex gap-2">
+                <Button size="sm" onClick={() => setIsCreateModalOpen(true)} className="h-8">
+                  + Add User
+                </Button>
+                <div className="px-3 py-1 flex items-center bg-primary/5 text-primary text-[10px] font-black rounded-full border border-primary/10 uppercase tracking-widest">
+                  Management Mode
+                </div>
               </div>
             </div>
 
@@ -185,6 +190,8 @@ export default function AdminDashboardPage() {
           </section>
         </div>
       </main>
+      
+      {isCreateModalOpen && <CreateUserModal onClose={() => setIsCreateModalOpen(false)} />}
     </div>
   );
 }

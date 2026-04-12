@@ -2,6 +2,33 @@ import { Response, NextFunction } from 'express';
 import { prisma } from '../lib/prisma';
 import { AppError } from '../utils/AppError';
 import { AuthRequest } from '../middlewares/auth';
+import bcrypt from 'bcryptjs';
+
+export const createUser = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const { email, password, name, role } = req.body;
+
+    const existingUser = await prisma.user.findUnique({ where: { email } });
+    if (existingUser) {
+      throw new AppError('Email already in use', 400);
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const user = await prisma.user.create({
+      data: {
+        email,
+        password: hashedPassword,
+        name,
+        role: role || 'USER',
+      },
+      select: { id: true, email: true, name: true, role: true }
+    });
+
+    res.status(201).json({ success: true, message: 'User created successfully', data: user });
+  } catch (error) {
+    next(error);
+  }
+};
 
 export const getUsers = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {

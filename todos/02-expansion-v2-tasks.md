@@ -32,7 +32,7 @@
   - *Commit:* `chore: add table ui component`
 - [x] Refactor `AdminDashboardPage.tsx` to use the Table for users, including sorting and filtering.
   - *Commit:* `feat: upgrade admin user table`
-- [ ] Build "Create User" modal for Admins and wire up the backend API call.
+- [x] Build "Create User" modal for Admins and wire up the backend API call.
   - *Commit:* `feat: add admin create user modal`
 
 ## 4. Organizer Dashboard Enhancements

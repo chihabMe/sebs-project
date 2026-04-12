@@ -6,6 +6,11 @@ export const getAdminUsers = async () => {
   return response.data.data;
 };
 
+export const createAdminUser = async (data: any) => {
+  const response = await client.post<ApiResponse>('/admin/users', data);
+  return response.data;
+};
+
 export const updateAdminUserStatus = async (id: string, data: { isBanned?: boolean; role?: string }) => {
   const response = await client.patch<ApiResponse>(`/admin/users/${id}`, data);
   return response.data;
