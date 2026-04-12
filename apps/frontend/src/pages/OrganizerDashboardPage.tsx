@@ -51,6 +51,7 @@ export default function OrganizerDashboardPage() {
                 events={events?.filter((e: any) => e.status === 'UPCOMING' || e.status === 'ONGOING')} 
                 isLoading={isLoading} 
                 deleteMutation={deleteMutation} 
+                statusMutation={statusMutation}
                 emptyTitle="No Upcoming Artifacts" 
               />
             </TabsContent>
@@ -60,6 +61,7 @@ export default function OrganizerDashboardPage() {
                 events={events?.filter((e: any) => e.status === 'COMPLETED' || e.status === 'CANCELLED')} 
                 isLoading={isLoading} 
                 deleteMutation={deleteMutation} 
+                statusMutation={statusMutation}
                 emptyTitle="No Past Artifacts" 
               />
             </TabsContent>
@@ -70,7 +72,7 @@ export default function OrganizerDashboardPage() {
   );
 }
 
-function EventTable({ events, isLoading, deleteMutation, emptyTitle }: any) {
+function EventTable({ events, isLoading, deleteMutation, statusMutation, emptyTitle }: any) {
   return (
           <section className="bg-surface-container-low rounded-3xl p-8 border border-primary/5 overflow-x-auto shadow-sm">
             <div className="flex items-center justify-between mb-8">
@@ -126,6 +128,17 @@ function EventTable({ events, isLoading, deleteMutation, emptyTitle }: any) {
                       </td>
                       <td className="py-6 px-4 text-right">
                         <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          {event.status !== 'COMPLETED' && event.status !== 'CANCELLED' && (
+                            <Button 
+                              variant="outline" 
+                              size="icon" 
+                              className="h-10 w-10 border-primary/20 text-primary hover:bg-primary/5"
+                              onClick={() => window.confirm('Mark this event as COMPLETED?') && statusMutation.mutate({ id: event.id, status: 'COMPLETED' })}
+                              title="Mark as Completed"
+                            >
+                              <CheckCircle2 className="w-4 h-4" />
+                            </Button>
+                          )}
                           <Link to={`/events/${event.id}`} title="Preview Page">
                             <Button variant="ghost" size="icon" className="h-10 w-10">
                               <Eye className="w-4 h-4" />

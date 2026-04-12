@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { createEvent, getAllEvents, getEventById, getOrganizerEvents, updateEvent, deleteEvent } from '../controllers/event.controller';
+import { createEvent, getAllEvents, getEventById, getOrganizerEvents, updateEvent, deleteEvent, updateEventStatus } from '../controllers/event.controller';
 import { authenticate, authorize } from '../middlewares/auth';
 import { upload } from '../middlewares/upload';
 import { validate } from '../middlewares/validate';
@@ -31,6 +31,8 @@ router.put(
   validate(eventCreateSchema),
   updateEvent
 );
+
+router.patch('/:id/status', authenticate, authorize('ORGANIZER', 'ADMIN'), updateEventStatus);
 
 router.delete('/:id', authenticate, authorize('ORGANIZER', 'ADMIN'), deleteEvent);
 

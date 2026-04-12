@@ -45,6 +45,11 @@ export const deleteEvent = async (id: string) => {
   return response.data;
 };
 
+export const updateEventStatus = async (id: string, status: string) => {
+  const response = await api.patch<ApiResponse<any>>(`/events/${id}/status`, { status });
+  return response.data;
+};
+
 export const getEventAttendees = async (eventId: string) => {
   const response = await api.get<ApiResponse<any[]>>(`/bookings/event/${eventId}`);
   return response.data.data;

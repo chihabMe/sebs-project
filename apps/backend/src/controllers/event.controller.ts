@@ -230,3 +230,32 @@ export const deleteEvent = async (
     next(error);
   }
 };
+
+export const updateEventStatus = async (
+  req: AuthRequest,
+  res: Response<ApiResponse>,
+  next: NextFunction
+) => {
+  try {
+    const id = req.params.id as string;
+    const { status } = req.body;
+    const userId = req.user!.id;
+    const userRole = req.user!.role;
+
+    const event = await prisma.event.findUnique({ where: { id } });
+
+    if (!event) throw new AppError('Event not found', 404);
+    if (event.organizerId !== userId && userRole !== 'ADMIN') {
+      throw new AppError('Unauthorized to update this event', 403);
+    }
+
+    const updatedEvent = await prisma.event.update({
+      where: { id },
+      data: { status }
+    });
+
+    res.status(200).json({ success: true, message: 'Event status updated', data: updatedEvent });
+  } catch (error) {
+    next(error);
+  }
+};
