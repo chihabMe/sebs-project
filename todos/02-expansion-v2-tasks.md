@@ -30,7 +30,7 @@
 ## 3. Advanced Admin Management
 - [x] Install/Configure `Table` Shadcn component.
   - *Commit:* `chore: add table ui component`
-- [ ] Refactor `AdminDashboardPage.tsx` to use the Table for users, including sorting and filtering.
+- [x] Refactor `AdminDashboardPage.tsx` to use the Table for users, including sorting and filtering.
   - *Commit:* `feat: upgrade admin user table`
 - [ ] Build "Create User" modal for Admins and wire up the backend API call.
   - *Commit:* `feat: add admin create user modal`

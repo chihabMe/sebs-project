@@ -1,12 +1,16 @@
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getAdminUsers, updateAdminUserStatus, getAdminPendingEvents, approveAdminEvent, getAdminStats } from '../api/admin';
 import Header from '../components/layout/Header';
 import { Button } from '../components/ui/button';
-import { Shield, User, Calendar, Check, X, Activity, Users, AlertCircle } from 'lucide-react';
+import { Shield, User, Calendar, Check, X, Activity, Users, AlertCircle, Search } from 'lucide-react';
 import { formatImageUrl } from '../utils/formatUrl';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
 
 export default function AdminDashboardPage() {
   const queryClient = useQueryClient();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortField, setSortField] = useState<'name' | 'role'>('name');
 
   const { data: stats } = useQuery({ queryKey: ['admin-stats'], queryFn: getAdminStats });
   const { data: users, isLoading: usersLoading } = useQuery({ queryKey: ['admin-users'], queryFn: getAdminUsers });
@@ -101,43 +105,83 @@ export default function AdminDashboardPage() {
             )}
           </section>
 
-          <section className="bg-surface-container-low rounded-3xl p-8 border border-primary/5 shadow-sm overflow-hidden">
-            <div className="flex items-center justify-between mb-8">
+          <section className="bg-surface-container-low rounded-3xl p-8 border border-primary/5 shadow-sm overflow-hidden flex flex-col h-[500px]">
+            <div className="flex items-center justify-between mb-6 shrink-0">
               <h3 className="text-2xl font-bold font-headline text-primary">Identity Registry</h3>
               <div className="px-3 py-1 bg-primary/5 text-primary text-[10px] font-black rounded-full border border-primary/10 uppercase tracking-widest">
                 Management Mode
               </div>
             </div>
 
+            <div className="relative mb-6 shrink-0">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-outline/50" />
+              <input
+                type="text"
+                placeholder="Search users..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full bg-surface-container-high border border-outline-variant/30 rounded-xl pl-10 p-3 text-sm text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
+              />
+            </div>
+
+            <div className="flex-grow overflow-auto custom-scrollbar">
             {usersLoading ? (
               <div className="h-48 flex items-center justify-center"><div className="w-8 h-8 border-2 border-primary/20 border-t-primary rounded-full animate-spin"></div></div>
             ) : users && users.length > 0 ? (
-              <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
-                {users.map((u: any) => (
-                  <div key={u.id} className="bg-surface-container-high/50 p-4 rounded-2xl flex items-center gap-4 group">
-                    <div className="w-10 h-10 rounded-full bg-primary/5 flex items-center justify-center border border-primary/10 overflow-hidden">
-                      {u.avatar ? <img src={u.avatar} className="w-full h-full object-cover" /> : <User className="text-primary w-4 h-4" />}
-                    </div>
-                    <div className="flex-grow min-w-0">
-                      <p className="font-bold text-on-surface truncate text-sm">{u.name}</p>
-                      <p className="text-[10px] text-outline font-bold uppercase">{u.role}</p>
-                    </div>
-                    <div className="flex gap-2">
-                       {u.role !== 'ADMIN' && (
-                         <Button 
-                           variant="ghost" 
-                           size="sm" 
-                           className={`h-8 ${u.isBanned ? 'text-primary' : 'text-error hover:bg-error/5'}`}
-                           onClick={() => updateUserMutation.mutate({ id: u.id, data: { isBanned: !u.isBanned } })}
-                         >
-                           {u.isBanned ? 'Unban' : 'Ban'}
-                         </Button>
-                       )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : null}
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-[50px]"></TableHead>
+                    <TableHead 
+                      className="cursor-pointer hover:text-primary transition-colors"
+                      onClick={() => setSortField('name')}
+                    >
+                      User {sortField === 'name' && '↓'}
+                    </TableHead>
+                    <TableHead 
+                      className="cursor-pointer hover:text-primary transition-colors"
+                      onClick={() => setSortField('role')}
+                    >
+                      Role {sortField === 'role' && '↓'}
+                    </TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {users
+                    .filter((u: any) => u.name.toLowerCase().includes(searchTerm.toLowerCase()) || u.email.toLowerCase().includes(searchTerm.toLowerCase()))
+                    .sort((a: any, b: any) => a[sortField].localeCompare(b[sortField]))
+                    .map((u: any) => (
+                    <TableRow key={u.id}>
+                      <TableCell>
+                        <div className="w-8 h-8 rounded-full bg-primary/5 flex items-center justify-center border border-primary/10 overflow-hidden">
+                          {u.avatar ? <img src={u.avatar} className="w-full h-full object-cover" /> : <User className="text-primary w-3 h-3" />}
+                        </div>
+                      </TableCell>
+                      <TableCell className="font-bold">{u.name}</TableCell>
+                      <TableCell>
+                        <span className="text-[10px] font-bold uppercase tracking-widest">{u.role}</span>
+                      </TableCell>
+                      <TableCell className="text-right">
+                         {u.role !== 'ADMIN' && (
+                           <Button 
+                             variant="ghost" 
+                             size="sm" 
+                             className={`h-8 ${u.isBanned ? 'text-primary hover:bg-primary/5' : 'text-error hover:bg-error/5'}`}
+                             onClick={() => updateUserMutation.mutate({ id: u.id, data: { isBanned: !u.isBanned } })}
+                           >
+                             {u.isBanned ? 'Unban' : 'Ban'}
+                           </Button>
+                         )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            ) : (
+              <div className="text-center py-12 text-outline text-xs">No users found.</div>
+            )}
+            </div>
           </section>
         </div>
       </main>
