@@ -43,7 +43,7 @@ export const createBooking = async (
         if (question.required) {
           const answer = answers?.find(a => a.questionId === question.id);
           if (!answer || !answer.answer) {
-            throw new AppError(\`Answer for "\${question.question}" is required\`, 400);
+            throw new AppError(`Answer for "\${question.question}" is required`, 400);
           }
         }
       }

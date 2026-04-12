@@ -11,6 +11,8 @@ import { formatImageUrl } from '../utils/formatUrl';
 import { Button } from '../components/ui/button';
 import { Calendar, MapPin, User, ShieldCheck, Ticket } from 'lucide-react';
 import BookingFormModal from '../components/events/BookingFormModal';
+import ReviewList from '../components/events/ReviewList';
+import ReviewForm from '../components/events/ReviewForm';
 
 export default function EventDetailsPage() {
   const { id } = useParams();

@@ -35,7 +35,7 @@ export const getEventAttendees = async (req: AuthRequest, res: Response<ApiRespo
 
 export const updateBookingStatus = async (req: AuthRequest, res: Response<ApiResponse>, next: NextFunction) => {
   try {
-    const { bookingId } = req.params;
+    const bookingId = req.params.bookingId as string;
     const { status } = req.body; // CONFIRMED, REJECTED
     const userId = req.user!.id;
 
@@ -55,7 +55,7 @@ export const updateBookingStatus = async (req: AuthRequest, res: Response<ApiRes
       include: { user: true, event: true },
     });
 
-    res.json({ success: true, message: \`Booking \${status.toLowerCase()} successfully\`, data: updatedBooking });
+    res.json({ success: true, message: `Booking \${status.toLowerCase()} successfully`, data: updatedBooking });
   } catch (error) {
     next(error);
   }
@@ -63,7 +63,7 @@ export const updateBookingStatus = async (req: AuthRequest, res: Response<ApiRes
 
 export const removeAttendee = async (req: AuthRequest, res: Response<ApiResponse>, next: NextFunction) => {
   try {
-    const { bookingId } = req.params;
+    const bookingId = req.params.bookingId as string;
     const userId = req.user!.id;
 
     const booking = await prisma.booking.findUnique({
@@ -88,7 +88,7 @@ export const removeAttendee = async (req: AuthRequest, res: Response<ApiResponse
 
 export const generateInviteLink = async (req: AuthRequest, res: Response<ApiResponse>, next: NextFunction) => {
   try {
-    const { eventId } = req.params;
+    const eventId = req.params.eventId as string;
     const userId = req.user!.id;
 
     const event = await prisma.event.findUnique({

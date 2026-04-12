@@ -11,6 +11,7 @@ import EventFormPage from './pages/EventFormPage';
 import EventAttendeesPage from './pages/EventAttendeesPage';
 import ManageEventFormPage from './pages/ManageEventFormPage';
 import AdminDashboardPage from './pages/AdminDashboardPage';
+import PublicProfilePage from './pages/PublicProfilePage';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import Footer from './components/layout/Footer';
 

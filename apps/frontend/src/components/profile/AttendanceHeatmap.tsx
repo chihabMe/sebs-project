@@ -28,10 +28,10 @@ export default function AttendanceHeatmap() {
           return (
             <div
               key={i}
-              className={`w-3 h-3 rounded-sm \${
+              className={`w-3 h-3 rounded-sm ${
                 hasAttended ? 'bg-primary' : 'bg-surface-container-highest/50'
               }`}
-              title={format(day, 'MMM d, yyyy') + (hasAttended ? \` - \${attendedEvents.length} events\` : '')}
+              title={format(day, 'MMM d, yyyy') + (hasAttended ? ` - ${attendedEvents.length} events` : '')}
             />
           );
         })}

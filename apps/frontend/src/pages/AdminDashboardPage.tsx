@@ -6,11 +6,13 @@ import { Button } from '../components/ui/button';
 import { Shield, User, Calendar, Check, X, Activity, Users, AlertCircle, Search } from 'lucide-react';
 import { formatImageUrl } from '../utils/formatUrl';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
+import CreateUserModal from '../components/admin/CreateUserModal';
 
 export default function AdminDashboardPage() {
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState('');
   const [sortField, setSortField] = useState<'name' | 'role'>('name');
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   const { data: stats } = useQuery({ queryKey: ['admin-stats'], queryFn: getAdminStats });
   const { data: users, isLoading: usersLoading } = useQuery({ queryKey: ['admin-users'], queryFn: getAdminUsers });

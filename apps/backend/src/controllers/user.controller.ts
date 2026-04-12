@@ -98,7 +98,6 @@ export const getAttendanceHistory = async (
     const history = bookings.map(b => {
       const isPast = new Date(b.event.date) < new Date() || b.event.status === 'COMPLETED';
       const attended = b.status === 'CONFIRMED' && isPast;
-      const missed = b.status === 'CONFIRMED' && !attended && isPast; // technically if confirmed and past, they attended unless marked otherwise, but let's just say if it's confirmed and past, it's attended for simplicity
 
       return {
         id: b.id,
@@ -114,6 +113,57 @@ export const getAttendanceHistory = async (
     res.json({
       success: true,
       data: history
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getPublicProfile = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const userId = req.params.userId as string;
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        name: true,
+        role: true,
+        avatar: true,
+        bio: true,
+        createdAt: true,
+      },
+    });
+
+    if (!user) throw new AppError('User not found', 404);
+
+    const bookings = await prisma.booking.findMany({
+      where: { userId },
+      include: {
+        event: {
+          select: { title: true, date: true, status: true }
+        }
+      },
+      orderBy: { event: { date: 'asc' } }
+    });
+
+    const history = bookings.map(b => {
+      const isPast = new Date(b.event.date) < new Date() || b.event.status === 'COMPLETED';
+      const attended = b.status === 'CONFIRMED' && isPast;
+
+      return {
+        date: b.event.date,
+        attended
+      };
+    });
+
+    res.json({
+      success: true,
+      data: { user, history }
     });
   } catch (error) {
     next(error);

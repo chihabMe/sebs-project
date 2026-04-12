@@ -6,7 +6,7 @@ import { ApiResponse, EventFormUpdateInput } from '@sebs/shared';
 
 export const getEventForm = async (req: AuthRequest, res: Response<ApiResponse>, next: NextFunction) => {
   try {
-    const { eventId } = req.params;
+    const eventId = req.params.eventId as string;
     
     const questions = await prisma.eventFormQuestion.findMany({
       where: { eventId },
@@ -20,7 +20,7 @@ export const getEventForm = async (req: AuthRequest, res: Response<ApiResponse>,
 
 export const updateEventForm = async (req: AuthRequest, res: Response<ApiResponse>, next: NextFunction) => {
   try {
-    const { eventId } = req.params;
+    const eventId = req.params.eventId as string;
     const { questions } = req.body as EventFormUpdateInput;
     const userId = req.user!.id;
 
