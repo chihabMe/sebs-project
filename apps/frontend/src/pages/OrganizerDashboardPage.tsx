@@ -2,10 +2,11 @@ import Header from '../components/layout/Header';
 import { useAuth } from '../hooks/useAuth';
 import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getMyEvents, deleteEvent } from '../api/events';
+import { getMyEvents, deleteEvent, updateEventStatus } from '../api/events';
 import { formatImageUrl } from '../utils/formatUrl';
 import { Button } from '../components/ui/button';
-import { Plus, Users, Edit, Trash2, ClipboardList, Eye } from 'lucide-react';
+import { Plus, Users, Edit, Trash2, ClipboardList, Eye, CheckCircle2 } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 
 export default function OrganizerDashboardPage() {
   const { user } = useAuth();
@@ -18,6 +19,13 @@ export default function OrganizerDashboardPage() {
 
   const deleteMutation = useMutation({
     mutationFn: deleteEvent,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['my-events'] });
+    },
+  });
+
+  const statusMutation = useMutation({
+    mutationFn: ({ id, status }: { id: string, status: string }) => updateEventStatus(id, status),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['my-events'] });
     },
