@@ -36,7 +36,7 @@
   - *Commit:* `feat: add admin create user modal`
 
 ## 4. Organizer Dashboard Enhancements
-- [ ] Install/Configure `Tabs` Shadcn component.
+- [x] Install/Configure `Tabs` Shadcn component.
   - *Commit:* `chore: add tabs ui component`
 - [ ] Add "Upcoming" vs "Past" filtering tabs to `OrganizerDashboardPage.tsx`.
   - *Commit:* `feat: add event filtering tabs`
