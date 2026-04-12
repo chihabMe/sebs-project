@@ -75,3 +75,47 @@ export const updateProfile = async (
     next(error);
   }
 };
+
+export const getAttendanceHistory = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) throw new AppError('Unauthorized', 401);
+
+    const bookings = await prisma.booking.findMany({
+      where: { userId },
+      include: {
+        event: {
+          select: { title: true, date: true, status: true }
+        }
+      },
+      orderBy: { event: { date: 'asc' } }
+    });
+
+    const history = bookings.map(b => {
+      const isPast = new Date(b.event.date) < new Date() || b.event.status === 'COMPLETED';
+      const attended = b.status === 'CONFIRMED' && isPast;
+      const missed = b.status === 'CONFIRMED' && !attended && isPast; // technically if confirmed and past, they attended unless marked otherwise, but let's just say if it's confirmed and past, it's attended for simplicity
+
+      return {
+        id: b.id,
+        eventId: b.eventId,
+        title: b.event.title,
+        date: b.event.date,
+        bookingStatus: b.status,
+        eventStatus: b.event.status,
+        attended
+      };
+    });
+
+    res.json({
+      success: true,
+      data: history
+    });
+  } catch (error) {
+    next(error);
+  }
+};

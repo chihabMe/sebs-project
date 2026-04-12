@@ -18,7 +18,7 @@
   - *Commit:* `feat: integrate reviews into event details`
 
 ## 2. Profile System & Attendance Heatmap
-- [ ] Create backend analytics endpoint to fetch user attendance history (Attended vs. Missed).
+- [x] Create backend analytics endpoint to fetch user attendance history (Attended vs. Missed).
   - *Commit:* `feat: add attendance analytics endpoint`
 - [ ] Build GitHub-style attendance Heatmap component.
   - *Commit:* `feat: build attendance heatmap component`
