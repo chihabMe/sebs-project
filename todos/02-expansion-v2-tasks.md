@@ -10,7 +10,7 @@
 ## 1. Reviews System (Frontend)
 - [x] Create frontend API client functions for reviews (`src/api/reviews.ts`).
   - *Commit:* `feat: add reviews api client`
-- [ ] Build `ReviewList` component to display existing event reviews.
+- [x] Build `ReviewList` component to display existing event reviews.
   - *Commit:* `feat: create review list component`
 - [ ] Build `ReviewForm` component to allow users to submit a rating and comment.
   - *Commit:* `feat: create review form component`
