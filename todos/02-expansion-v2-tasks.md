@@ -24,7 +24,7 @@
   - *Commit:* `feat: build attendance heatmap component`
 - [x] Add Edit Profile form (update bio, avatar, details) and integrate with backend API.
   - *Commit:* `feat: add edit profile functionality`
-- [ ] Build Public Profile view/page showing user stats and heatmap to others.
+- [x] Build Public Profile view/page showing user stats and heatmap to others.
   - *Commit:* `feat: add public profile page`
 
 ## 3. Advanced Admin Management

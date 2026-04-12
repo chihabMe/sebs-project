@@ -11,6 +11,11 @@ export const getAttendanceHistory = async () => {
   return response.data.data;
 };
 
+export const getPublicProfile = async (userId: string) => {
+  const response = await api.get<ApiResponse<any>>(`/users/public/${userId}`);
+  return response.data.data;
+};
+
 export const updateProfile = async (data: any) => {
   const response = await api.put<ApiResponse<UserDto>>('/users/profile', data);
   return response.data;

@@ -29,6 +29,7 @@ function App() {
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/events" element={<BrowseEventsPage />} />
           <Route path="/events/:id" element={<EventDetailsPage />} />
+          <Route path="/users/:userId" element={<PublicProfilePage />} />
 
           {/* Shared Protected Routes */}
           <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
