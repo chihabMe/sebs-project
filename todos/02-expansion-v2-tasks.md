@@ -14,7 +14,7 @@
   - *Commit:* `feat: create review list component`
 - [x] Build `ReviewForm` component to allow users to submit a rating and comment.
   - *Commit:* `feat: create review form component`
-- [ ] Integrate Reviews UI (List & Form) into `EventDetailsPage.tsx`.
+- [x] Integrate Reviews UI (List & Form) into `EventDetailsPage.tsx`.
   - *Commit:* `feat: integrate reviews into event details`
 
 ## 2. Profile System & Attendance Heatmap

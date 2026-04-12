@@ -164,6 +164,16 @@ export default function EventDetailsPage() {
                 ))}
               </div>
             )}
+
+            {/* Reviews Section */}
+            <div className="pt-16 border-t border-primary/10">
+              <ReviewList eventId={event.id} />
+              {hasConfirmedBooking && (
+                <div className="mt-12">
+                  <ReviewForm eventId={event.id} />
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Sticky Booking Sidebar */}
