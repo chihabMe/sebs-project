@@ -12,7 +12,7 @@
   - *Commit:* `feat: add reviews api client`
 - [x] Build `ReviewList` component to display existing event reviews.
   - *Commit:* `feat: create review list component`
-- [ ] Build `ReviewForm` component to allow users to submit a rating and comment.
+- [x] Build `ReviewForm` component to allow users to submit a rating and comment.
   - *Commit:* `feat: create review form component`
 - [ ] Integrate Reviews UI (List & Form) into `EventDetailsPage.tsx`.
   - *Commit:* `feat: integrate reviews into event details`
