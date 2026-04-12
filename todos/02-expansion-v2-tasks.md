@@ -28,7 +28,7 @@
   - *Commit:* `feat: add public profile page`
 
 ## 3. Advanced Admin Management
-- [ ] Install/Configure `Table` Shadcn component.
+- [x] Install/Configure `Table` Shadcn component.
   - *Commit:* `chore: add table ui component`
 - [ ] Refactor `AdminDashboardPage.tsx` to use the Table for users, including sorting and filtering.
   - *Commit:* `feat: upgrade admin user table`
