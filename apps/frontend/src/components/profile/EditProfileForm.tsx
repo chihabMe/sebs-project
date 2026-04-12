@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { updateProfile } from '../../api/auth';
 import { Button } from '../ui/button';
 import { useAuth } from '../../hooks/useAuth';
+import { handleApiError } from '../../utils/errorHandler';
 
 interface EditProfileFormProps {
   onSuccess: () => void;
@@ -24,12 +25,14 @@ export default function EditProfileForm({ onSuccess }: EditProfileFormProps) {
       onSuccess();
     },
     onError: (err: any) => {
-      setError(err.response?.data?.message || 'Failed to update profile');
+      const apiError = handleApiError(err);
+      setError(apiError.message);
     },
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null); // Clear previous errors
     mutation.mutate({ name, bio, avatar });
   };
 

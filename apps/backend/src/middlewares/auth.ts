@@ -20,7 +20,7 @@ export const authenticate = (req: AuthRequest, res: Response, next: NextFunction
     }
 
     if (!token) {
-      throw new AppError('Not authenticated. Please log in.', 401);
+      throw new AppError('Not authenticated. Please log in.', 401, 'MISSING_AUTH_TOKEN');
     }
 
     const secret = process.env.JWT_SECRET || 'supersecretfallback';
@@ -29,14 +29,14 @@ export const authenticate = (req: AuthRequest, res: Response, next: NextFunction
     
     next();
   } catch (error) {
-    next(new AppError('Invalid or expired token', 401));
+    next(new AppError('Invalid or expired token', 401, 'INVALID_TOKEN'));
   }
 };
 
 export const authorize = (...roles: string[]) => {
   return (req: AuthRequest, res: Response, next: NextFunction) => {
     if (!req.user || !roles.includes(req.user.role)) {
-      return next(new AppError('You do not have permission to perform this action', 403));
+      return next(new AppError('You do not have permission to perform this action', 403, 'INSUFFICIENT_PERMISSIONS'));
     }
     next();
   };

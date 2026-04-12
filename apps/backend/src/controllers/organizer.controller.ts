@@ -13,9 +13,9 @@ export const getEventAttendees = async (req: AuthRequest, res: Response<ApiRespo
       where: { id: eventId },
     });
 
-    if (!event) throw new AppError('Event not found', 404);
+    if (!event) throw new AppError('Event not found', 404, 'EVENT_NOT_FOUND');
     if (event.organizerId !== userId && req.user!.role !== 'ADMIN') {
-      throw new AppError('Unauthorized', 403);
+      throw new AppError('Unauthorized', 403, 'UNAUTHORIZED_ACCESS');
     }
 
     const bookings = await prisma.booking.findMany({
@@ -44,9 +44,9 @@ export const updateBookingStatus = async (req: AuthRequest, res: Response<ApiRes
       include: { event: true },
     });
 
-    if (!booking) throw new AppError('Booking not found', 404);
+    if (!booking) throw new AppError('Booking not found', 404, 'BOOKING_NOT_FOUND');
     if (booking.event.organizerId !== userId && req.user!.role !== 'ADMIN') {
-      throw new AppError('Unauthorized', 403);
+      throw new AppError('Unauthorized', 403, 'UNAUTHORIZED_ACCESS');
     }
 
     const updatedBooking = await prisma.booking.update({
@@ -71,9 +71,9 @@ export const removeAttendee = async (req: AuthRequest, res: Response<ApiResponse
       include: { event: true },
     });
 
-    if (!booking) throw new AppError('Booking not found', 404);
+    if (!booking) throw new AppError('Booking not found', 404, 'BOOKING_NOT_FOUND');
     if (booking.event.organizerId !== userId && req.user!.role !== 'ADMIN') {
-      throw new AppError('Unauthorized', 403);
+      throw new AppError('Unauthorized', 403, 'UNAUTHORIZED_ACCESS');
     }
 
     await prisma.booking.delete({
@@ -95,9 +95,9 @@ export const generateInviteLink = async (req: AuthRequest, res: Response<ApiResp
       where: { id: eventId },
     });
 
-    if (!event) throw new AppError('Event not found', 404);
+    if (!event) throw new AppError('Event not found', 404, 'EVENT_NOT_FOUND');
     if (event.organizerId !== userId && req.user!.role !== 'ADMIN') {
-      throw new AppError('Unauthorized', 403);
+      throw new AppError('Unauthorized', 403, 'UNAUTHORIZED_ACCESS');
     }
 
     // Ensure it has a token

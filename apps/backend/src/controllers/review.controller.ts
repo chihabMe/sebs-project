@@ -19,7 +19,7 @@ export const createReview = async (
     });
 
     if (!event) {
-      throw new AppError('Event not found', 404);
+      throw new AppError('Event not found', 404, 'EVENT_NOT_FOUND');
     }
 
     // Check if user has a confirmed booking
@@ -33,7 +33,7 @@ export const createReview = async (
     });
 
     if (!booking || booking.status !== 'CONFIRMED') {
-      throw new AppError('You must have a confirmed booking to review this event', 400);
+      throw new AppError('You must have a confirmed booking to review this event', 400, 'INVALID_BOOKING_STATUS');
     }
 
     // Optional: Only allow reviews after event is completed
@@ -147,11 +147,11 @@ export const deleteReview = async (
     });
 
     if (!review) {
-      throw new AppError('Review not found', 404);
+      throw new AppError('Review not found', 404, 'REVIEW_NOT_FOUND');
     }
 
     if (review.userId !== userId && userRole !== 'ADMIN') {
-      throw new AppError('You are not authorized to delete this review', 403);
+      throw new AppError('You are not authorized to delete this review', 403, 'UNAUTHORIZED_REVIEW_DELETE');
     }
 
     await prisma.review.delete({

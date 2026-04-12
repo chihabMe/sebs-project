@@ -24,17 +24,17 @@ export const createBooking = async (
       }
     });
 
-    if (!event) throw new AppError('Event not found', 404);
+    if (!event) throw new AppError('Event not found', 404, 'EVENT_NOT_FOUND');
 
     // Validate invitation token if event is private (future proofing) or just check token
     const isViaInvite = token && event.invitationToken === token;
 
     if (!isViaInvite && event.status !== 'UPCOMING') {
-      throw new AppError('Cannot book tickets for an event that is not upcoming', 400);
+      throw new AppError('Cannot book tickets for an event that is not upcoming', 400, 'INVALID_EVENT_STATUS');
     }
 
     if (event._count.bookings >= event.maxTickets) {
-      throw new AppError('Event is sold out', 400);
+      throw new AppError('Event is sold out', 400, 'EVENT_SOLD_OUT');
     }
 
     // Validate form answers
@@ -43,7 +43,7 @@ export const createBooking = async (
         if (question.required) {
           const answer = answers?.find(a => a.questionId === question.id);
           if (!answer || !answer.answer) {
-            throw new AppError(`Answer for "\${question.question}" is required`, 400);
+            throw new AppError(`Answer for "\${question.question}" is required`, 400, 'MISSING_REQUIRED_ANSWER');
           }
         }
       }
@@ -81,7 +81,7 @@ export const createBooking = async (
           data: updatedBooking
         });
       }
-      throw new AppError('You have already requested a ticket for this event', 400);
+      throw new AppError('You have already requested a ticket for this event', 400, 'DUPLICATE_BOOKING');
     }
 
     const booking = await prisma.booking.create({
@@ -156,12 +156,12 @@ export const downloadTicket = async (
       },
     });
 
-    if (!booking) throw new AppError('Booking not found', 404);
+    if (!booking) throw new AppError('Booking not found', 404, 'BOOKING_NOT_FOUND');
     if (booking.userId !== userId && req.user!.role !== 'ADMIN') {
-      throw new AppError('Unauthorized', 403);
+      throw new AppError('Unauthorized', 403, 'UNAUTHORIZED_ACCESS');
     }
     if (booking.status !== 'CONFIRMED') {
-      throw new AppError('Ticket only available for confirmed bookings', 400);
+      throw new AppError('Ticket only available for confirmed bookings', 400, 'INVALID_BOOKING_STATUS');
     }
 
     const pdfUrl = await generateTicketPDF(booking, booking.event, booking.user);
@@ -184,8 +184,8 @@ export const cancelBooking = async (
       where: { id }
     });
 
-    if (!booking) throw new AppError('Booking not found', 404);
-    if (booking.userId !== userId) throw new AppError('Unauthorized', 403);
+    if (!booking) throw new AppError('Booking not found', 404, 'BOOKING_NOT_FOUND');
+    if (booking.userId !== userId) throw new AppError('Unauthorized', 403, 'UNAUTHORIZED_ACCESS');
 
     const updatedBooking = await prisma.booking.update({
       where: { id },

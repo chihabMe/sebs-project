@@ -11,7 +11,7 @@ export const createEvent = async (
 ) => {
   try {
     const userId = req.user?.id;
-    if (!userId) throw new AppError('User not found in request', 401);
+    if (!userId) throw new AppError('User not found in request', 401, 'USER_NOT_FOUND');
 
     const eventData = req.body as EventCreateInput;
     const imagePath = req.file ? `/uploads/${req.file.filename}` : null;
@@ -112,7 +112,7 @@ export const getEventById = async (
     });
 
     if (!event) {
-      throw new AppError('Event not found', 404);
+      throw new AppError('Event not found', 404, 'EVENT_NOT_FOUND');
     }
 
     res.status(200).json({
@@ -165,11 +165,11 @@ export const updateEvent = async (
     });
 
     if (!event) {
-      throw new AppError('Event not found', 404);
+      throw new AppError('Event not found', 404, 'EVENT_NOT_FOUND');
     }
 
     if (event.organizerId !== userId && userRole !== 'ADMIN') {
-      throw new AppError('You are not authorized to update this event', 403);
+      throw new AppError('You are not authorized to update this event', 403, 'UNAUTHORIZED_EVENT_UPDATE');
     }
 
     const eventData = req.body;
@@ -211,11 +211,11 @@ export const deleteEvent = async (
     });
 
     if (!event) {
-      throw new AppError('Event not found', 404);
+      throw new AppError('Event not found', 404, 'EVENT_NOT_FOUND');
     }
 
     if (event.organizerId !== userId && userRole !== 'ADMIN') {
-      throw new AppError('You are not authorized to delete this event', 403);
+      throw new AppError('You are not authorized to delete this event', 403, 'UNAUTHORIZED_EVENT_DELETE');
     }
 
     await prisma.event.delete({
@@ -244,9 +244,9 @@ export const updateEventStatus = async (
 
     const event = await prisma.event.findUnique({ where: { id } });
 
-    if (!event) throw new AppError('Event not found', 404);
+    if (!event) throw new AppError('Event not found', 404, 'EVENT_NOT_FOUND');
     if (event.organizerId !== userId && userRole !== 'ADMIN') {
-      throw new AppError('Unauthorized to update this event', 403);
+      throw new AppError('Unauthorized to update this event', 403, 'UNAUTHORIZED_EVENT_STATUS_UPDATE');
     }
 
     const updatedEvent = await prisma.event.update({

@@ -12,7 +12,7 @@ export const getProfile = async (
   try {
     const userId = req.user?.id;
     if (!userId) {
-      throw new AppError('Unauthorized', 401);
+      throw new AppError('Unauthorized', 401, 'UNAUTHORIZED_ACCESS');
     }
 
     const user = await prisma.user.findUnique({
@@ -28,7 +28,7 @@ export const getProfile = async (
     });
 
     if (!user) {
-      throw new AppError('User not found', 404);
+      throw new AppError('User not found', 404, 'USER_NOT_FOUND');
     }
 
     res.json({
@@ -48,7 +48,7 @@ export const updateProfile = async (
   try {
     const userId = req.user?.id;
     if (!userId) {
-      throw new AppError('Unauthorized', 401);
+      throw new AppError('Unauthorized', 401, 'UNAUTHORIZED_ACCESS');
     }
 
     const validatedData = updateProfileSchema.parse(req.body);
@@ -83,7 +83,7 @@ export const getAttendanceHistory = async (
 ) => {
   try {
     const userId = req.user?.id;
-    if (!userId) throw new AppError('Unauthorized', 401);
+    if (!userId) throw new AppError('Unauthorized', 401, 'UNAUTHORIZED_ACCESS');
 
     const bookings = await prisma.booking.findMany({
       where: { userId },
@@ -139,7 +139,7 @@ export const getPublicProfile = async (
       },
     });
 
-    if (!user) throw new AppError('User not found', 404);
+    if (!user) throw new AppError('User not found', 404, 'USER_NOT_FOUND');
 
     const bookings = await prisma.booking.findMany({
       where: { userId },

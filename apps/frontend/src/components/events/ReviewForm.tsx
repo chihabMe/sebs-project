@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { createReview } from '../../api/reviews';
 import { Star } from 'lucide-react';
 import { Button } from '../ui/button';
+import { handleApiError } from '../../utils/errorHandler';
 
 interface ReviewFormProps {
   eventId: string;
@@ -24,12 +25,14 @@ export default function ReviewForm({ eventId }: ReviewFormProps) {
       setError(null);
     },
     onError: (err: any) => {
-      setError(err.response?.data?.message || 'Failed to submit review');
+      const apiError = handleApiError(err);
+      setError(apiError.message);
     },
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null); // Clear previous errors
     if (rating === 0) {
       setError('Please select a rating');
       return;

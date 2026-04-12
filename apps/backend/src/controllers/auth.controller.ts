@@ -41,7 +41,7 @@ export const register = async (
 
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
-      throw new AppError('Email already in use', 400);
+      throw new AppError('Email already in use', 400, 'EMAIL_EXISTS');
     }
 
     const hashedPassword = await bcrypt.hash(password, 12);
@@ -82,16 +82,16 @@ export const login = async (
 
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
-      throw new AppError('Invalid credentials', 401);
+      throw new AppError('Invalid credentials', 401, 'INVALID_CREDENTIALS');
     }
 
     if (user.isBanned) {
-      throw new AppError('Your account has been banned', 403);
+      throw new AppError('Your account has been banned', 403, 'ACCOUNT_BANNED');
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      throw new AppError('Invalid credentials', 401);
+      throw new AppError('Invalid credentials', 401, 'INVALID_CREDENTIALS');
     }
 
     const accessToken = generateAccessToken(user.id, user.role);
@@ -120,14 +120,17 @@ export const refresh = async (
     const { refreshToken } = req.cookies;
 
     if (!refreshToken) {
-      throw new AppError('No refresh token provided', 401);
+      throw new AppError('No refresh token provided', 401, 'MISSING_REFRESH_TOKEN');
     }
 
     const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET || 'refreshsecretfallback') as { id: string };
     
     const user = await prisma.user.findUnique({ where: { id: decoded.id } });
-    if (!user || user.isBanned) {
-      throw new AppError('User not found or banned', 401);
+    if (!user) {
+      throw new AppError('User not found', 401, 'USER_NOT_FOUND');
+    }
+    if (user.isBanned) {
+      throw new AppError('Your account has been banned', 403, 'ACCOUNT_BANNED');
     }
 
     const accessToken = generateAccessToken(user.id, user.role);
@@ -142,7 +145,7 @@ export const refresh = async (
   } catch (error) {
     res.clearCookie('accessToken');
     res.clearCookie('refreshToken');
-    next(new AppError('Invalid or expired refresh token', 401));
+    next(new AppError('Invalid or expired refresh token', 401, 'INVALID_REFRESH_TOKEN'));
   }
 };
 

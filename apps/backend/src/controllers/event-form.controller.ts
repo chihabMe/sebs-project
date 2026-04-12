@@ -28,9 +28,9 @@ export const updateEventForm = async (req: AuthRequest, res: Response<ApiRespons
       where: { id: eventId },
     });
 
-    if (!event) throw new AppError('Event not found', 404);
+    if (!event) throw new AppError('Event not found', 404, 'EVENT_NOT_FOUND');
     if (event.organizerId !== userId && req.user!.role !== 'ADMIN') {
-      throw new AppError('Unauthorized', 403);
+      throw new AppError('Unauthorized', 403, 'UNAUTHORIZED_ACCESS');
     }
 
     // Replace all questions for simplicity (or use more complex logic)

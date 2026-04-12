@@ -10,7 +10,7 @@ export const createUser = async (req: AuthRequest, res: Response, next: NextFunc
 
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
-      throw new AppError('Email already in use', 400);
+      throw new AppError('Email already in use', 400, 'EMAIL_EXISTS');
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);

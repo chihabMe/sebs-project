@@ -105,4 +105,7 @@ export interface ApiResponse<T = any> {
   message?: string;
   data?: T;
   errors?: any;
+  errorId?: string;
+  code?: string;
+  details?: any;
 }
