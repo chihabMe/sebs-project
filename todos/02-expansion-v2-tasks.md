@@ -44,7 +44,7 @@
   - *Commit:* `feat: allow organizers to complete events`
 
 ## 5. Global UI & Infrastructure Polish
-- [ ] Revamp Header (Add About Us, Services dropdown, refined mobile menu).
+- [x] Revamp Header (Add About Us, Services dropdown, refined mobile menu).
   - *Commit:* `feat: revamp global header navigation`
 - [ ] Integrate Resend (Replace dummy email service with real API integration in `email.service.ts`).
   - *Commit:* `feat: integrate resend api`

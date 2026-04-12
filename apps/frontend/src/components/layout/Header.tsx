@@ -9,7 +9,7 @@ import {
   DropdownMenuTrigger 
 } from '../ui/dropdown-menu';
 import { Button } from '../ui/button';
-import { ChevronDown, User, LogOut, LayoutDashboard, Shield, Info, Rocket, HeartHandshake } from 'lucide-react';
+import { ChevronDown, User, LogOut, LayoutDashboard, Shield, Info, Rocket, HeartHandshake, Menu } from 'lucide-react';
 
 export default function Header() {
   const { user, isAuthenticated, logout, isLoading } = useAuth();
@@ -18,6 +18,36 @@ export default function Header() {
     <header className="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-xl shadow-[0_20px_40px_rgba(62,0,0,0.06)] border-b border-primary/5">
       <div className="flex justify-between items-center px-6 py-4 w-full max-w-7xl mx-auto">
         <div className="flex items-center gap-10">
+          <div className="flex items-center gap-4 lg:hidden">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="shrink-0 text-outline">
+                  <Menu className="w-6 h-6" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-56 mt-2">
+                <Link to="/events">
+                  <DropdownMenuItem className="font-bold uppercase tracking-widest text-[10px]">
+                    Experiences
+                  </DropdownMenuItem>
+                </Link>
+                <DropdownMenuSeparator />
+                <DropdownMenuLabel className="text-[10px] uppercase font-bold text-outline">About</DropdownMenuLabel>
+                <DropdownMenuItem className="gap-2">
+                  <Info className="w-4 h-4" /> Our Mission
+                </DropdownMenuItem>
+                <DropdownMenuItem className="gap-2">
+                  <HeartHandshake className="w-4 h-4" /> Community Pulse
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuLabel className="text-[10px] uppercase font-bold text-outline">Services</DropdownMenuLabel>
+                <DropdownMenuItem className="gap-2">
+                  <Rocket className="w-4 h-4" /> Rapid Deployment
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+
           <Link to="/" className="flex items-center gap-3 group cursor-pointer shrink-0">
             <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center group-hover:rotate-12 transition-transform">
               <span className="material-symbols-outlined text-on-primary">bolt</span>
