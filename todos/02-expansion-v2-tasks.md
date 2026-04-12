@@ -38,7 +38,7 @@
 ## 4. Organizer Dashboard Enhancements
 - [x] Install/Configure `Tabs` Shadcn component.
   - *Commit:* `chore: add tabs ui component`
-- [ ] Add "Upcoming" vs "Past" filtering tabs to `OrganizerDashboardPage.tsx`.
+- [x] Add "Upcoming" vs "Past" filtering tabs to `OrganizerDashboardPage.tsx`.
   - *Commit:* `feat: add event filtering tabs`
 - [ ] Add UI action for organizers to manually mark an event lifecycle as `COMPLETED`.
   - *Commit:* `feat: allow organizers to complete events`

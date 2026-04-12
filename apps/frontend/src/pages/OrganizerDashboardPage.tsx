@@ -40,11 +40,43 @@ export default function OrganizerDashboardPage() {
         </header>
 
         <div className="grid grid-cols-1 gap-8">
+          <Tabs defaultValue="upcoming" className="w-full">
+            <TabsList className="mb-8 p-1 bg-surface-container-high rounded-xl">
+              <TabsTrigger value="upcoming" className="rounded-lg px-8">Upcoming Events</TabsTrigger>
+              <TabsTrigger value="past" className="rounded-lg px-8">Past Events</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="upcoming">
+              <EventTable 
+                events={events?.filter((e: any) => e.status === 'UPCOMING' || e.status === 'ONGOING')} 
+                isLoading={isLoading} 
+                deleteMutation={deleteMutation} 
+                emptyTitle="No Upcoming Artifacts" 
+              />
+            </TabsContent>
+
+            <TabsContent value="past">
+              <EventTable 
+                events={events?.filter((e: any) => e.status === 'COMPLETED' || e.status === 'CANCELLED')} 
+                isLoading={isLoading} 
+                deleteMutation={deleteMutation} 
+                emptyTitle="No Past Artifacts" 
+              />
+            </TabsContent>
+          </Tabs>
+        </div>
+      </main>
+    </div>
+  );
+}
+
+function EventTable({ events, isLoading, deleteMutation, emptyTitle }: any) {
+  return (
           <section className="bg-surface-container-low rounded-3xl p-8 border border-primary/5 overflow-x-auto shadow-sm">
             <div className="flex items-center justify-between mb-8">
-              <h3 className="text-2xl font-bold font-headline text-primary">Active Experiences</h3>
+              <h3 className="text-2xl font-bold font-headline text-primary">Managed Experiences</h3>
               <div className="px-4 py-1.5 bg-primary/5 text-primary text-xs font-bold rounded-full border border-primary/10 uppercase tracking-widest">
-                {events?.length || 0} Managed Entries
+                {events?.length || 0} Entries
               </div>
             </div>
             
@@ -90,7 +122,7 @@ export default function OrganizerDashboardPage() {
                       </td>
                       <td className="py-6 px-4">
                         <p className="text-sm font-bold text-on-surface">{event.maxTickets} Total Capacity</p>
-                        <p className="text-xs text-outline font-medium mt-1">Registry Open</p>
+                        <p className="text-xs text-outline font-medium mt-1">{event.status}</p>
                       </td>
                       <td className="py-6 px-4 text-right">
                         <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -133,16 +165,13 @@ export default function OrganizerDashboardPage() {
                 <div className="w-24 h-24 bg-surface-container-highest rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
                    <Plus className="text-outline w-10 h-10 opacity-30" />
                 </div>
-                <h4 className="text-2xl font-bold font-headline text-primary mb-2">No Active Artifacts</h4>
-                <p className="text-outline font-medium max-w-sm mx-auto mb-10">Your archive is currently empty. Initialize your first curated experience to begin.</p>
+                <h4 className="text-2xl font-bold font-headline text-primary mb-2">{emptyTitle}</h4>
+                <p className="text-outline font-medium max-w-sm mx-auto mb-10">Your archive is currently empty in this section.</p>
                 <Link to="/organizer/events/new">
-                   <Button variant="default">Start First Curated Experience</Button>
+                   <Button variant="default">Start Curated Experience</Button>
                 </Link>
               </div>
             )}
           </section>
-        </div>
-      </main>
-    </div>
   );
 }
