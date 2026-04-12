@@ -6,6 +6,11 @@ export const getProfile = async () => {
   return response.data.data;
 };
 
+export const getAttendanceHistory = async () => {
+  const response = await api.get<ApiResponse<any[]>>('/users/attendance');
+  return response.data.data;
+};
+
 export const logout = async () => {
   const response = await api.post<ApiResponse>('/auth/logout');
   return response.data;

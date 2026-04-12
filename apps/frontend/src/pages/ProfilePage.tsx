@@ -1,5 +1,6 @@
 import Header from '../components/layout/Header';
 import { useAuth } from '../hooks/useAuth';
+import AttendanceHeatmap from '../components/profile/AttendanceHeatmap';
 
 export default function ProfilePage() {
   const { user } = useAuth();
@@ -7,7 +8,7 @@ export default function ProfilePage() {
   return (
     <div className="bg-surface text-on-surface min-h-screen flex flex-col">
       <Header />
-      <main className="pt-32 px-6 max-w-3xl mx-auto w-full">
+      <main className="pt-32 px-6 max-w-3xl mx-auto w-full pb-20">
         <div className="bg-surface-container-low rounded-3xl p-8 md:p-12 shadow-xl border border-outline-variant/20">
           <header className="flex flex-col md:flex-row items-center gap-8 mb-12">
             <div className="w-32 h-32 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden border-4 border-surface shadow-lg">
@@ -37,6 +38,8 @@ export default function ProfilePage() {
                 {user?.bio || 'No bio provided yet. Tell the world about your kinetic interests.'}
               </p>
             </div>
+
+            <AttendanceHeatmap />
             
             <div className="pt-8 border-t border-outline-variant/10">
               <button className="bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-bold px-6 py-3 rounded-xl transition-all border border-outline-variant/30">

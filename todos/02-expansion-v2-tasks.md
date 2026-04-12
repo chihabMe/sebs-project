@@ -20,7 +20,7 @@
 ## 2. Profile System & Attendance Heatmap
 - [x] Create backend analytics endpoint to fetch user attendance history (Attended vs. Missed).
   - *Commit:* `feat: add attendance analytics endpoint`
-- [ ] Build GitHub-style attendance Heatmap component.
+- [x] Build GitHub-style attendance Heatmap component.
   - *Commit:* `feat: build attendance heatmap component`
 - [ ] Add Edit Profile form (update bio, avatar, details) and integrate with backend API.
   - *Commit:* `feat: add edit profile functionality`
