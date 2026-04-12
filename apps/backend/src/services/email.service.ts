@@ -7,28 +7,24 @@ const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KE
 
 export const sendEmail = async (to: string, subject: string, text: string, html?: string) => {
   try {
-    if (resend) {
-      const { data, error } = await resend.emails.send({
-        from: 'SEBS <onboarding@resend.dev>', // In production, use your verified domain
-        to,
-        subject,
-        text,
-        html: html || text.replace(/\n/g, '<br>'),
-      });
-
-      if (error) {
-        console.error('Resend error:', error);
-        return false;
-      }
-      return true;
-    } else {
-      console.log('--- [DUMMY EMAIL (Resend not configured)] ---');
-      console.log('To:', to);
-      console.log('Subject:', subject);
-      console.log('Body:', text);
-      console.log('-------------------------------------------');
-      return true;
+    if (!resend) {
+      console.warn('RESEND_API_KEY is not configured. Email will not be sent.');
+      return false;
     }
+    
+    const { data, error } = await resend.emails.send({
+      from: 'SEBS <onboarding@resend.dev>', // In production, use your verified domain
+      to,
+      subject,
+      text,
+      html: html || text.replace(/\n/g, '<br>'),
+    });
+
+    if (error) {
+      console.error('Resend error:', error);
+      return false;
+    }
+    return true;
   } catch (error) {
     console.error('Email sending failed:', error);
     return false;
