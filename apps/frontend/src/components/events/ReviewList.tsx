@@ -8,7 +8,7 @@ interface ReviewListProps {
 }
 
 export default function ReviewList({ eventId }: ReviewListProps) {
-  const { data: reviews, isLoading } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ['reviews', eventId],
     queryFn: () => getEventReviews(eventId),
     enabled: !!eventId,
@@ -22,7 +22,9 @@ export default function ReviewList({ eventId }: ReviewListProps) {
     );
   }
 
-  if (!reviews || reviews.length === 0) {
+  const reviewsArray = data?.reviews || [];
+
+  if (!reviewsArray || reviewsArray.length === 0) {
     return (
       <div className="text-center py-12 bg-surface-container-low rounded-3xl border border-primary/5">
         <p className="text-outline font-medium text-sm">No reviews yet. Be the first to share your experience!</p>
@@ -32,9 +34,9 @@ export default function ReviewList({ eventId }: ReviewListProps) {
 
   return (
     <div className="space-y-6">
-      <h3 className="text-2xl font-black font-headline text-primary">Experiences & Reviews ({reviews.length})</h3>
+      <h3 className="text-2xl font-black font-headline text-primary">Experiences & Reviews ({reviewsArray.length})</h3>
       <div className="space-y-4">
-        {reviews.map((review: any) => (
+        {reviewsArray.map((review: any) => (
           <div key={review.id} className="bg-surface-container-low p-6 rounded-2xl border border-primary/5 shadow-sm">
             <div className="flex items-center gap-4 mb-4">
               <div className="w-10 h-10 rounded-full overflow-hidden bg-primary/10 flex items-center justify-center shrink-0">

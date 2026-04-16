@@ -8,7 +8,7 @@ export interface CreateReviewData {
 }
 
 export const getEventReviews = async (eventId: string) => {
-  const response = await api.get<ApiResponse<any[]>>(`/reviews/event/${eventId}`);
+  const response = await api.get<ApiResponse<any>>(`/reviews/event/${eventId}`);
   return response.data.data;
 };
 
