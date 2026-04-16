@@ -20,8 +20,12 @@ export default function LoginPage() {
     },
     onSuccess: (data) => {
       // Set the user data in the cache immediately
-      queryClient.setQueryData(['auth-user'], data.data?.user);
-      if (data.data?.user.role === 'ORGANIZER') {
+      const user = data.data?.user;
+      queryClient.setQueryData(['auth-user'], user);
+      
+      if (user?.role === 'ADMIN') {
+        navigate('/admin');
+      } else if (user?.role === 'ORGANIZER') {
         navigate('/organizer');
       } else {
         navigate('/dashboard');

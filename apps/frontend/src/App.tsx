@@ -11,6 +11,7 @@ import EventFormPage from './pages/EventFormPage';
 import EventAttendeesPage from './pages/EventAttendeesPage';
 import ManageEventFormPage from './pages/ManageEventFormPage';
 import AdminDashboardPage from './pages/AdminDashboardPage';
+import AdminLoginPage from './pages/AdminLoginPage';
 import PublicProfilePage from './pages/PublicProfilePage';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import Footer from './components/layout/Footer';
@@ -20,10 +21,10 @@ import { useAuth } from './hooks/useAuth';
 function App() {
   const { user } = useAuth();
   const location = useLocation();
-  const hideFooterRoutes = ['/login', '/register'];
+  const hideFooterRoutes = ['/login', '/register', '/dashboard/auth/login'];
   const showFooter = !hideFooterRoutes.includes(location.pathname);
 
-  const showOnboarding = user && (!user.tags || user.tags.length === 0);
+  const showOnboarding = user && user.role === 'USER' && (!user.tags || user.tags.length === 0);
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -32,6 +33,7 @@ function App() {
           {/* Public Routes */}
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/dashboard/auth/login" element={<AdminLoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/events" element={<BrowseEventsPage />} />
           <Route path="/events/:id" element={<EventDetailsPage />} />
