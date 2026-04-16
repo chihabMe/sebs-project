@@ -70,7 +70,7 @@ export default function EventDetailsPage() {
   };
 
   const cancelMutation = useMutation({
-    mutationFn: () => cancelBooking(booking.id),
+    mutationFn: () => cancelBooking(booking?.id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['booking-status', id] });
       queryClient.invalidateQueries({ queryKey: ['my-bookings'] });
@@ -159,9 +159,9 @@ export default function EventDetailsPage() {
             {/* Tags */}
             {event.tags && event.tags.length > 0 && (
               <div className="flex flex-wrap gap-3">
-                {event.tags.map((tag: string) => (
-                  <span key={tag} className="px-4 py-2 bg-surface-container-low text-outline text-[10px] font-black uppercase tracking-widest rounded-xl border border-primary/5 hover:bg-primary/5 hover:text-primary transition-all cursor-default">
-                    #{tag}
+                {event.tags.map((tag: any) => (
+                  <span key={tag.id} className="px-4 py-2 bg-surface-container-low text-outline text-[10px] font-black uppercase tracking-widest rounded-xl border border-primary/5 hover:bg-primary/5 hover:text-primary transition-all cursor-default">
+                    #{tag.name}
                   </span>
                 ))}
               </div>

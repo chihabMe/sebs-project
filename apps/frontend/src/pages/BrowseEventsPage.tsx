@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useSearchParams } from 'react-router-dom';
 import { getEvents } from '../api/events';
+import { getAllTags } from '../api/tags';
 import Header from '../components/layout/Header';
 import { Link } from 'react-router-dom';
 import { formatImageUrl } from '../utils/formatUrl';
@@ -25,6 +26,7 @@ export default function BrowseEventsPage() {
   // Local state for filters
   const [searchInput, setSearchInput] = useState(searchParams.get('search') || '');
   const [category, setCategory] = useState(searchParams.get('category') || 'All Events');
+  const [tag, setTag] = useState(searchParams.get('tag') || 'All Tags');
   const [date, setDate] = useState<Date | undefined>(
     searchParams.get('date') ? new Date(searchParams.get('date')!) : undefined
   );
@@ -33,6 +35,7 @@ export default function BrowseEventsPage() {
   const [activeFilters, setActiveFilters] = useState({
     search: searchParams.get('search') || '',
     category: searchParams.get('category') || 'All Events',
+    tag: searchParams.get('tag') || '',
     date: searchParams.get('date') || '',
   });
 
@@ -41,12 +44,18 @@ export default function BrowseEventsPage() {
     queryFn: () => getEvents(activeFilters),
   });
 
+  const { data: tagsResponse } = useQuery({
+    queryKey: ['tags'],
+    queryFn: getAllTags,
+  });
+
   const categories = ['All Events', 'Music', 'Tech', 'Art', 'Food', 'Social'];
 
   const handleSearch = () => {
     const filters = {
       search: searchInput,
       category,
+      tag: tag === 'All Tags' ? '' : tag,
       date: date ? format(date, 'yyyy-MM-dd') : '',
     };
     setActiveFilters(filters);
@@ -55,6 +64,7 @@ export default function BrowseEventsPage() {
     const params: Record<string, string> = {};
     if (filters.search) params.search = filters.search;
     if (filters.category !== 'All Events') params.category = filters.category;
+    if (filters.tag) params.tag = filters.tag;
     if (filters.date) params.date = filters.date;
     setSearchParams(params);
   };
@@ -62,8 +72,9 @@ export default function BrowseEventsPage() {
   const handleReset = () => {
     setSearchInput('');
     setCategory('All Events');
+    setTag('All Tags');
     setDate(undefined);
-    const resetFilters = { search: '', category: 'All Events', date: '' };
+    const resetFilters = { search: '', category: 'All Events', tag: '', date: '' };
     setActiveFilters(resetFilters);
     setSearchParams({});
   };
@@ -100,6 +111,21 @@ export default function BrowseEventsPage() {
                 <SelectContent>
                   {categories.map(cat => (
                     <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="w-full lg:w-48">
+              <label className="block text-[10px] font-bold uppercase tracking-widest text-outline mb-2 ml-1">Classification</label>
+              <Select value={tag} onValueChange={setTag}>
+                <SelectTrigger className="bg-surface-container-high border-none">
+                  <SelectValue placeholder="Select tag" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="All Tags">All Tags</SelectItem>
+                  {tagsResponse?.data?.map(t => (
+                    <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -191,6 +217,13 @@ export default function BrowseEventsPage() {
                       Pending Approval
                     </div>
                   )}
+                  <div className="absolute bottom-4 left-4 flex flex-wrap gap-1">
+                    {event.tags?.slice(0, 3).map((t: any) => (
+                      <span key={t.id} className="bg-black/50 backdrop-blur-sm text-white text-[8px] font-bold px-2 py-0.5 rounded-full uppercase tracking-widest">
+                        #{t.name}
+                      </span>
+                    ))}
+                  </div>
                 </div>
                 <div className="p-7">
                   <div className="flex gap-5 mb-5">

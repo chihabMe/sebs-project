@@ -1,16 +1,68 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import Header from '../components/layout/Header';
+import { useAuth } from '../hooks/useAuth';
+import { getRecommendedEvents, getEvents } from '../api/events';
+import { formatImageUrl } from '../utils/formatUrl';
+import { Calendar, MapPin, Sparkles } from 'lucide-react';
 
 export default function HomePage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [search, setSearch] = useState('');
+
+  const { data: recommendedEvents, isLoading: recommendedLoading } = useQuery({
+    queryKey: ['recommended-events'],
+    queryFn: getRecommendedEvents,
+    enabled: !!user,
+  });
+
+  const { data: upcomingEvents, isLoading: upcomingLoading } = useQuery({
+    queryKey: ['upcoming-events'],
+    queryFn: () => getEvents({ search: '' }),
+  });
 
   const handleExplore = () => {
     const params = new URLSearchParams();
     if (search) params.append('search', search);
     navigate(`/events?${params.toString()}`);
   };
+
+  const renderEventCard = (event: any) => (
+    <Link 
+      key={event.id} 
+      to={`/events/${event.id}`}
+      className="group bg-surface-container-low rounded-3xl border border-primary/5 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col"
+    >
+      <div className="relative aspect-video overflow-hidden">
+        <img 
+          src={formatImageUrl(event.image)} 
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+        />
+        <div className="absolute top-4 left-4 flex flex-wrap gap-1.5">
+          {event.tags?.slice(0, 2).map((tag: any) => (
+            <span key={tag.id} className="bg-primary/90 text-on-primary text-[10px] font-black px-2 py-1 rounded-full uppercase tracking-widest backdrop-blur-md">
+              #{tag.name}
+            </span>
+          ))}
+        </div>
+      </div>
+      <div className="p-6 flex-grow flex flex-col">
+        <h4 className="text-xl font-bold font-headline text-on-surface mb-3 group-hover:text-primary transition-colors line-clamp-1">{event.title}</h4>
+        <div className="space-y-2 mt-auto">
+          <div className="flex items-center gap-2 text-outline text-xs font-bold">
+            <Calendar className="w-3.5 h-3.5" />
+            {new Date(event.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+          </div>
+          <div className="flex items-center gap-2 text-outline text-xs font-bold">
+            <MapPin className="w-3.5 h-3.5" />
+            {event.location}
+          </div>
+        </div>
+      </div>
+    </Link>
+  );
 
   return (
     <div className="bg-surface text-on-surface min-h-screen flex flex-col selection:bg-primary-container selection:text-on-primary-container">
@@ -60,12 +112,63 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Featured Events Placeholder */}
+        {/* Recommended for You Section */}
+        {user && (
+          <section className="bg-surface py-20 px-6">
+            <div className="max-w-7xl mx-auto">
+              <div className="flex items-end justify-between mb-12">
+                <div>
+                  <h2 className="text-3xl font-black font-headline text-primary mb-2 flex items-center gap-3">
+                    <Sparkles className="w-8 h-8" /> Recommended for You
+                  </h2>
+                  <p className="text-outline font-medium">Experiences tuned to your unique kinetic signature.</p>
+                </div>
+                <Link to="/events" className="text-primary font-black text-sm uppercase tracking-widest flex items-center gap-2 hover:gap-3 transition-all">
+                  See All <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                </Link>
+              </div>
+
+              {recommendedLoading ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                  {[1, 2, 3].map(i => <div key={i} className="aspect-video bg-surface-container-high rounded-3xl animate-pulse" />)}
+                </div>
+              ) : recommendedEvents && recommendedEvents.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                  {recommendedEvents.map(renderEventCard)}
+                </div>
+              ) : (
+                <div className="text-center py-20 bg-surface-container-low rounded-[3rem] border-2 border-dashed border-primary/5">
+                  <p className="text-outline font-bold uppercase tracking-widest">No matching experiences found yet.</p>
+                </div>
+              )}
+            </div>
+          </section>
+        )}
+
+        {/* Global Feed Section */}
         <section className="bg-surface-container-low py-24 px-6">
-          <div className="max-w-7xl mx-auto text-center">
-            <h2 className="text-3xl font-extrabold tracking-tight mb-4 font-headline">Featured Events</h2>
-            <div className="w-16 h-1.5 bg-primary rounded-full mx-auto mb-12"></div>
-            <p className="text-on-surface-variant">Stay tuned for the kinetic pulse of upcoming experiences...</p>
+          <div className="max-w-7xl mx-auto">
+            <div className="flex items-end justify-between mb-12">
+              <div>
+                <h2 className="text-3xl font-black font-headline text-on-surface mb-2">Upcoming Experiences</h2>
+                <div className="w-16 h-1.5 bg-primary rounded-full"></div>
+              </div>
+              <Link to="/events" className="text-primary font-black text-sm uppercase tracking-widest flex items-center gap-2 hover:gap-3 transition-all">
+                Browse Registry <span className="material-symbols-outlined text-sm">arrow_forward</span>
+              </Link>
+            </div>
+
+            {upcomingLoading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {[1, 2, 3, 4].map(i => <div key={i} className="aspect-[3/4] bg-surface-container-high rounded-3xl animate-pulse" />)}
+              </div>
+            ) : upcomingEvents && upcomingEvents.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {upcomingEvents.slice(0, 8).map(renderEventCard)}
+              </div>
+            ) : (
+              <p className="text-on-surface-variant text-center py-12">Stay tuned for the kinetic pulse of upcoming experiences...</p>
+            )}
           </div>
         </section>
       </main>

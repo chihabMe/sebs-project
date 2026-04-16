@@ -54,3 +54,8 @@ export const getEventAttendees = async (eventId: string) => {
   const response = await api.get<ApiResponse<any[]>>(`/bookings/event/${eventId}`);
   return response.data.data;
 };
+
+export const getRecommendedEvents = async () => {
+  const response = await api.get<ApiResponse<any[]>>('/events/recommended');
+  return response.data.data;
+};

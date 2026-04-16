@@ -7,6 +7,7 @@ import { Shield, User, Calendar, Check, X, Activity, Users, AlertCircle, Search 
 import { formatImageUrl } from '../utils/formatUrl';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
 import CreateUserModal from '../components/admin/CreateUserModal';
+import TagManagement from '../components/admin/TagManagement';
 
 export default function AdminDashboardPage() {
   const queryClient = useQueryClient();
@@ -23,6 +24,9 @@ export default function AdminDashboardPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-events'] });
       queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['events'] });
+      queryClient.invalidateQueries({ queryKey: ['upcoming-events'] });
+      queryClient.invalidateQueries({ queryKey: ['recommended-events'] });
     },
   });
 
@@ -66,7 +70,7 @@ export default function AdminDashboardPage() {
           ))}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
           <section className="bg-surface-container-low rounded-3xl p-8 border border-primary/5 shadow-sm overflow-hidden">
             <div className="flex items-center justify-between mb-8">
               <h3 className="text-2xl font-bold font-headline text-primary">Awaiting Clearance</h3>
@@ -190,6 +194,10 @@ export default function AdminDashboardPage() {
             )}
             </div>
           </section>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+           <TagManagement />
         </div>
       </main>
       

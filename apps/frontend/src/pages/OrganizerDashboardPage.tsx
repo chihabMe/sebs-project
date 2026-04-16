@@ -21,13 +21,20 @@ export default function OrganizerDashboardPage() {
     mutationFn: deleteEvent,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['my-events'] });
+      queryClient.invalidateQueries({ queryKey: ['events'] });
+      queryClient.invalidateQueries({ queryKey: ['upcoming-events'] });
+      queryClient.invalidateQueries({ queryKey: ['recommended-events'] });
     },
   });
 
   const statusMutation = useMutation({
     mutationFn: ({ id, status }: { id: string, status: string }) => updateEventStatus(id, status),
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['my-events'] });
+      queryClient.invalidateQueries({ queryKey: ['events'] });
+      queryClient.invalidateQueries({ queryKey: ['upcoming-events'] });
+      queryClient.invalidateQueries({ queryKey: ['recommended-events'] });
+      queryClient.invalidateQueries({ queryKey: ['event', variables.id] });
     },
   });
 

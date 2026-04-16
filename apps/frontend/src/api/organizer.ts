@@ -22,11 +22,11 @@ export const generateInviteLink = async (eventId: string) => {
 };
 
 export const getEventForm = async (eventId: string) => {
-  const response = await client.get<ApiResponse>(`/api/event-forms/${eventId}`);
+  const response = await client.get<ApiResponse>(`/event-forms/${eventId}`);
   return response.data.data;
 };
 
 export const updateEventForm = async (eventId: string, data: EventFormUpdateInput) => {
-  const response = await client.put<ApiResponse>(`/api/event-forms/${eventId}`, data);
+  const response = await client.put<ApiResponse>(`/event-forms/${eventId}`, data);
   return response.data;
 };

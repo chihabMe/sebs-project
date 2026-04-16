@@ -14,11 +14,16 @@ import AdminDashboardPage from './pages/AdminDashboardPage';
 import PublicProfilePage from './pages/PublicProfilePage';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import Footer from './components/layout/Footer';
+import OnboardingModal from './components/auth/OnboardingModal';
+import { useAuth } from './hooks/useAuth';
 
 function App() {
+  const { user } = useAuth();
   const location = useLocation();
   const hideFooterRoutes = ['/login', '/register'];
   const showFooter = !hideFooterRoutes.includes(location.pathname);
+
+  const showOnboarding = user && (!user.tags || user.tags.length === 0);
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -50,6 +55,7 @@ function App() {
         </Routes>
       </div>
       {showFooter && <Footer />}
+      {showOnboarding && <OnboardingModal />}
     </div>
   );
 }

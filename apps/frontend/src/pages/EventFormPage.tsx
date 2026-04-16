@@ -55,6 +55,8 @@ export default function EventFormPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['my-events'] });
       queryClient.invalidateQueries({ queryKey: ['events'] });
+      queryClient.invalidateQueries({ queryKey: ['upcoming-events'] });
+      queryClient.invalidateQueries({ queryKey: ['recommended-events'] });
       if (isEdit) {
         queryClient.invalidateQueries({ queryKey: ['event', id] });
       }
