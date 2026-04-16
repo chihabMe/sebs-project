@@ -1,13 +1,16 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { createEvent, updateEvent, getEvent } from '../api/events';
+import { getAllTags } from '../api/tags';
 import Header from '../components/layout/Header';
+import TagPicker from '../components/ui/TagPicker';
 
 export default function EventFormPage() {
   const { id } = useParams();
   const isEdit = !!id;
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -16,7 +19,7 @@ export default function EventFormPage() {
     category: 'Music',
     maxTickets: 0,
     price: 0,
-    tags: '',
+    tags: [] as string[],
   });
   const [image, setImage] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -25,6 +28,11 @@ export default function EventFormPage() {
     queryKey: ['event', id],
     queryFn: () => getEvent(id!),
     enabled: isEdit,
+  });
+
+  const { data: tagsResponse } = useQuery({
+    queryKey: ['tags'],
+    queryFn: getAllTags,
   });
 
   useEffect(() => {
@@ -37,7 +45,7 @@ export default function EventFormPage() {
         category: existingEvent.category,
         maxTickets: existingEvent.maxTickets,
         price: existingEvent.price,
-        tags: existingEvent.tags?.join(', ') || '',
+        tags: existingEvent.tags?.map((t: any) => t.id) || [],
       });
     }
   }, [existingEvent]);
@@ -45,6 +53,11 @@ export default function EventFormPage() {
   const mutation = useMutation({
     mutationFn: (data: FormData) => isEdit ? updateEvent(id!, data) : createEvent(data),
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['my-events'] });
+      queryClient.invalidateQueries({ queryKey: ['events'] });
+      if (isEdit) {
+        queryClient.invalidateQueries({ queryKey: ['event', id] });
+      }
       navigate('/organizer');
     },
     onError: (err: any) => {
@@ -56,9 +69,18 @@ export default function EventFormPage() {
     e.preventDefault();
     setError(null);
 
+    if (formData.tags.length < 3) {
+      setError('Please select at least 3 tags.');
+      return;
+    }
+
     const data = new FormData();
     Object.entries(formData).forEach(([key, value]) => {
-      data.append(key, value.toString());
+      if (key === 'tags') {
+        data.append(key, (value as string[]).join(','));
+      } else {
+        data.append(key, value.toString());
+      }
     });
     if (image) {
       data.append('image', image);
@@ -178,6 +200,14 @@ export default function EventFormPage() {
                 className="w-full bg-surface-container-high rounded-xl py-4 px-6 text-on-surface focus:ring-2 focus:ring-primary/20 outline-none transition-all font-medium"
                 value={formData.price}
                 onChange={e => setFormData({ ...formData, price: parseFloat(e.target.value) })}
+              />
+            </div>
+
+            <div className="md:col-span-2">
+              <TagPicker 
+                availableTags={tagsResponse?.data || []}
+                selectedTagIds={formData.tags}
+                onChange={(ids) => setFormData({ ...formData, tags: ids })}
               />
             </div>
           </div>
