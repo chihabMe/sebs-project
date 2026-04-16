@@ -17,6 +17,11 @@ export const loginSchema = z.object({
   password: z.string(),
 });
 
+// TAG
+export const tagCreateSchema = z.object({
+  name: z.string().min(2).max(50),
+});
+
 // EVENT
 export const eventCreateSchema = z.object({
   title: z.string().min(3),
@@ -25,8 +30,8 @@ export const eventCreateSchema = z.object({
   location: z.string(),
   category: z.string(),
   tags: z.preprocess(
-    (val) => (typeof val === 'string' ? val.split(',').map((s) => s.trim()) : val),
-    z.array(z.string()).optional()
+    (val) => (typeof val === 'string' ? val.split(',').filter(Boolean).map((s) => s.trim()) : val),
+    z.array(z.string()).min(3, "Select at least 3 tags").max(7, "Select at most 7 tags")
   ),
   maxTickets: z.coerce.number().int().positive(),
   price: z.coerce.number().nonnegative(),
@@ -67,6 +72,7 @@ export const updateProfileSchema = z.object({
   name: z.string().min(2).optional(),
   avatar: z.string().url().optional().or(z.literal('')),
   bio: z.string().max(500).optional(),
+  tags: z.array(z.string()).optional(), // Array of Tag IDs
 });
 
 // ==========================================
@@ -74,6 +80,7 @@ export const updateProfileSchema = z.object({
 // ==========================================
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
+export type TagCreateInput = z.infer<typeof tagCreateSchema>;
 export type EventCreateInput = z.infer<typeof eventCreateSchema>;
 export type BookingCreateInput = z.infer<typeof bookingCreateSchema>;
 export type BookingStatusUpdateInput = z.infer<typeof bookingStatusUpdateSchema>;
@@ -86,6 +93,11 @@ export type ProfileUpdateInput = z.infer<typeof updateProfileSchema>;
 // INTERFACES (Frontend/Backend Contracts)
 // ==========================================
 
+export interface TagDto {
+  id: string;
+  name: string;
+}
+
 export interface UserDto {
   id: string;
   email: string;
@@ -93,6 +105,7 @@ export interface UserDto {
   role: 'ADMIN' | 'ORGANIZER' | 'USER';
   avatar?: string | null;
   bio?: string | null;
+  tags?: TagDto[];
 }
 
 export interface AuthResponse {
@@ -108,4 +121,23 @@ export interface ApiResponse<T = any> {
   errorId?: string;
   code?: string;
   details?: any;
+}
+
+export interface EventDto {
+  id: string;
+  title: string;
+  description: string;
+  date: string | Date;
+  location: string;
+  image?: string | null;
+  category: string;
+  status: string;
+  isApproved: boolean;
+  maxTickets: number;
+  price: number;
+  organizerId: string;
+  organizer?: { id: string; name: string };
+  tags: TagDto[];
+  createdAt: string | Date;
+  updatedAt: string | Date;
 }
