@@ -42,6 +42,7 @@ model User {
   events    Event[]   @relation("OrganizedEvents")
   bookings  Booking[]
   reviews   Review[]
+  tags      Tag[]     @relation("UserTags")
 }
 
 model Event {
@@ -52,7 +53,6 @@ model Event {
   location        String
   image           String?
   category        String
-  tags            String[]
   status          EventStatus @default(UPCOMING)
   isApproved      Boolean     @default(false)
   maxTickets      Int
@@ -67,7 +67,16 @@ model Event {
   bookings    Booking[]
   reviews     Review[]
   formQuestions EventFormQuestion[]
+  tags        Tag[]     @relation("EventTags")
 }
+
+model Tag {
+  id     String  @id @default(uuid())
+  name   String  @unique
+  events Event[] @relation("EventTags")
+  users  User[]  @relation("UserTags")
+}
+
 
 model EventFormQuestion {
   id        String   @id @default(uuid())

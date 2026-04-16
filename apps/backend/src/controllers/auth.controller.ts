@@ -63,7 +63,15 @@ export const register = async (
       success: true,
       message: 'User registered successfully',
       data: {
-        user: { id: user.id, email: user.email, name: user.name, role: user.role },
+        user: { 
+          id: user.id, 
+          email: user.email, 
+          name: user.name, 
+          role: user.role,
+          avatar: user.avatar,
+          bio: user.bio,
+          tags: []
+        },
         token: accessToken,
       },
     });
@@ -80,7 +88,10 @@ export const login = async (
   try {
     const { email, password } = req.body;
 
-    const user = await prisma.user.findUnique({ where: { email } });
+    const user = await prisma.user.findUnique({ 
+      where: { email },
+      include: { tags: true }
+    });
     if (!user) {
       throw new AppError('Invalid credentials', 401, 'INVALID_CREDENTIALS');
     }
@@ -102,7 +113,15 @@ export const login = async (
       success: true,
       message: 'Logged in successfully',
       data: {
-        user: { id: user.id, email: user.email, name: user.name, role: user.role },
+        user: { 
+          id: user.id, 
+          email: user.email, 
+          name: user.name, 
+          role: user.role,
+          avatar: user.avatar,
+          bio: user.bio,
+          tags: user.tags
+        },
         token: accessToken,
       },
     });

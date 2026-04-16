@@ -15,6 +15,7 @@ import userRoutes from './routes/user.routes';
 import adminRoutes from './routes/admin.routes';
 import organizerRoutes from './routes/organizer.routes';
 import eventFormRoutes from './routes/event-form.routes';
+import tagRoutes from './routes/tag.routes';
 import { errorHandler } from './middlewares/errorHandler';
 
 dotenv.config();
@@ -85,6 +86,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/organizer', organizerRoutes);
 app.use('/api/event-forms', eventFormRoutes);
+app.use('/api/tags', tagRoutes);
 
 // Health check
 app.get('/health', (req, res) => {

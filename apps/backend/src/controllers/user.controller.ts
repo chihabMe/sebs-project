@@ -24,6 +24,7 @@ export const getProfile = async (
         role: true,
         avatar: true,
         bio: true,
+        tags: true,
       },
     });
 
@@ -51,11 +52,18 @@ export const updateProfile = async (
       throw new AppError('Unauthorized', 401, 'UNAUTHORIZED_ACCESS');
     }
 
-    const validatedData = updateProfileSchema.parse(req.body);
+    const { tags, ...restData } = updateProfileSchema.parse(req.body);
 
     const updatedUser = await prisma.user.update({
       where: { id: userId },
-      data: validatedData,
+      data: {
+        ...restData,
+        ...(tags && {
+          tags: {
+            set: tags.map((id: string) => ({ id }))
+          }
+        })
+      },
       select: {
         id: true,
         email: true,
@@ -63,6 +71,7 @@ export const updateProfile = async (
         role: true,
         avatar: true,
         bio: true,
+        tags: true,
       },
     });
 

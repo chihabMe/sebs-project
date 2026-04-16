@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { createEvent, getAllEvents, getEventById, getOrganizerEvents, updateEvent, deleteEvent, updateEventStatus } from '../controllers/event.controller';
+import { createEvent, getAllEvents, getEventById, getOrganizerEvents, updateEvent, deleteEvent, updateEventStatus, getRecommendedEvents } from '../controllers/event.controller';
 import { authenticate, authorize } from '../middlewares/auth';
 import { upload } from '../middlewares/upload';
 import { validate } from '../middlewares/validate';
@@ -13,6 +13,7 @@ router.get('/:id', getEventById);
 
 // Protected routes (Organizer & Admin)
 router.get('/my/events', authenticate, authorize('ORGANIZER', 'ADMIN'), getOrganizerEvents);
+router.get('/recommended', authenticate, getRecommendedEvents);
 
 router.post(
   '/',

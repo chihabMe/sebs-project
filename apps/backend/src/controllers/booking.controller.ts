@@ -218,6 +218,7 @@ export const checkBookingStatus = async (
     res.status(200).json({
       success: true,
       data: {
+        id: booking?.id || null,
         isBooked: !!booking && booking.status !== 'CANCELLED' && booking.status !== 'REJECTED',
         status: booking?.status || null
       }
