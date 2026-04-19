@@ -35,6 +35,7 @@ export const errorHandler = (
   if (err instanceof Prisma.PrismaClientKnownRequestError) {
     let message = 'Database error occurred';
     let code = 'DATABASE_ERROR';
+    let statusCode = 400;
     
     switch (err.code) {
       case 'P2002':
@@ -44,6 +45,7 @@ export const errorHandler = (
       case 'P2025':
         message = 'Resource not found';
         code = 'RESOURCE_NOT_FOUND';
+        statusCode = 404;
         break;
       default:
         message = 'Database operation failed';
@@ -55,7 +57,7 @@ export const errorHandler = (
       meta: err.meta
     });
     
-    return res.status(400).json({
+    return res.status(statusCode).json({
       success: false,
       message,
       errorId,
@@ -82,6 +84,17 @@ export const errorHandler = (
       details: process.env.NODE_ENV === 'development' ? { 
         error: err.message 
       } : undefined
+    });
+  }
+
+  // Handle Zod errors
+  if (err.name === 'ZodError') {
+    return res.status(400).json({
+      success: false,
+      message: 'Validation failed',
+      errorId,
+      code: 'VALIDATION_ERROR',
+      details: JSON.parse(err.message)
     });
   }
 

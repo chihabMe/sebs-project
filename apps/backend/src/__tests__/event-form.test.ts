@@ -26,4 +26,25 @@ describe('Event Form API', () => {
     expect(res.status).toBe(200);
     expect(Array.isArray(res.body.data)).toBe(true);
   });
+
+  it('should return 404 for a non-existent event form', async () => {
+    const res = await api.get('/api/event-forms/00000000-0000-0000-0000-000000000000');
+    expect(res.status).toBe(404);
+    expect(res.body.success).toBe(false);
+  });
+
+  it('should fail to update an event form as USER', async () => {
+    const { token } = await createUser('USER');
+    
+    const res = await api.put('/api/event-forms/00000000-0000-0000-0000-000000000000')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        schema: {
+          fields: [{ type: 'text', name: 'company', label: 'Company', required: true }]
+        }
+      });
+
+    expect(res.status).toBe(403);
+    expect(res.body.success).toBe(false);
+  });
 });

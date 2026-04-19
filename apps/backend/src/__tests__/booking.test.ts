@@ -42,4 +42,54 @@ describe('Booking API', () => {
     expect(res.status).toBe(200);
     expect(Array.isArray(res.body.data)).toBe(true);
   });
+
+  it('should fail to book an event that is full', async () => {
+    const { token } = await createUser('USER');
+    
+    // Create an event with maxTickets = 0
+    const event = await prisma.event.create({
+      data: {
+        title: 'Full Event',
+        description: 'No tickets left',
+        date: new Date(Date.now() + 86400000),
+        location: 'Virtual',
+        price: 0,
+        maxTickets: 0,
+        category: 'Technology',
+        organizerId: (await createUser('ORGANIZER')).user.id,
+      }
+    });
+
+    const res = await api.post('/api/bookings')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        eventId: event.id
+      });
+
+    expect(res.status).toBe(400); // Bad Request for full event
+    expect(res.body.success).toBe(false);
+  });
+
+  it('should fail to book a non-existent event', async () => {
+    const { token } = await createUser('USER');
+
+    const res = await api.post('/api/bookings')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        eventId: '00000000-0000-0000-0000-000000000000'
+      });
+
+    expect(res.status).toBe(404);
+    expect(res.body.success).toBe(false);
+  });
+
+  it('should return 404 when canceling a non-existent booking', async () => {
+    const { token } = await createUser('USER');
+
+    const res = await api.patch('/api/bookings/00000000-0000-0000-0000-000000000000/cancel')
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(res.status).toBe(404);
+    expect(res.body.success).toBe(false);
+  });
 });

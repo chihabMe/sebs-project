@@ -46,6 +46,7 @@ const limiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
+  skip: () => process.env.NODE_ENV === 'test'
 });
 
 const authLimiter = rateLimit({
@@ -58,6 +59,7 @@ const authLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
+  skip: () => process.env.NODE_ENV === 'test'
 });
 
 app.use(limiter);

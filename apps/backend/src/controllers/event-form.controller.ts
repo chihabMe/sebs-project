@@ -8,6 +8,12 @@ export const getEventForm = async (req: AuthRequest, res: Response<ApiResponse>,
   try {
     const eventId = req.params.eventId as string;
     
+    const event = await prisma.event.findUnique({
+      where: { id: eventId },
+    });
+
+    if (!event) throw new AppError('Event not found', 404, 'EVENT_NOT_FOUND');
+
     const questions = await prisma.eventFormQuestion.findMany({
       where: { eventId },
     });

@@ -28,4 +28,20 @@ describe('Tags API', () => {
 
     expect(res.status).toBe(403);
   });
+
+  it('should fail to create a duplicate tag', async () => {
+    const { token } = await createUser('ADMIN');
+    
+    await api.post('/api/tags')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ name: 'DuplicateTag' });
+
+    const res = await api.post('/api/tags')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ name: 'DuplicateTag' });
+
+    // Assuming backend returns 400 or 409 for duplicate (usually handled by Prisma unique constraint)
+    expect(res.status).not.toBe(201);
+    expect(res.status).toBeGreaterThanOrEqual(400);
+  });
 });

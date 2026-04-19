@@ -53,4 +53,47 @@ describe('Auth API', () => {
     expect(res.status).toBe(200);
     expect(res.headers['set-cookie'][0]).toContain('accessToken=;');
   });
+
+  it('should fail to register with an existing email', async () => {
+    await api.post('/api/auth/register').send({
+      name: 'Existing User',
+      email: 'existing@example.com',
+      password: 'password123',
+    });
+
+    const res = await api.post('/api/auth/register').send({
+      name: 'Another User',
+      email: 'existing@example.com',
+      password: 'password123',
+    });
+
+    expect(res.status).toBe(400);
+    expect(res.body.success).toBe(false);
+  });
+
+  it('should fail to login with incorrect password', async () => {
+    await api.post('/api/auth/register').send({
+      name: 'Wrong Pass User',
+      email: 'wrongpass@example.com',
+      password: 'password123',
+    });
+
+    const res = await api.post('/api/auth/login').send({
+      email: 'wrongpass@example.com',
+      password: 'wrongpassword',
+    });
+
+    expect(res.status).toBe(401);
+    expect(res.body.success).toBe(false);
+  });
+
+  it('should fail to login with non-existent email', async () => {
+    const res = await api.post('/api/auth/login').send({
+      email: 'nonexistent@example.com',
+      password: 'password123',
+    });
+
+    expect(res.status).toBe(401); // Or 404 depending on the implementation
+    expect(res.body.success).toBe(false);
+  });
 });

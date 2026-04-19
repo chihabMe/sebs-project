@@ -1,10 +1,13 @@
 @baseUrl = http://localhost:4000/api
 
 ### 1. Health Check
-GET http://localhost:4000/health
+GET {{baseUrl}}/health
 
----
-### 2. Register a New User
+### ---------------------------------------------------------
+### AUTHENTICATION
+### ---------------------------------------------------------
+
+### Register a New User
 # @name registerUser
 POST {{baseUrl}}/auth/register
 Content-Type: application/json
@@ -16,8 +19,7 @@ Content-Type: application/json
   "role": "USER"
 }
 
----
-### 3. Register an Organizer
+### Register an Organizer
 # @name registerOrganizer
 POST {{baseUrl}}/auth/register
 Content-Type: application/json
@@ -29,8 +31,7 @@ Content-Type: application/json
   "role": "ORGANIZER"
 }
 
----
-### 4. Login User
+### Login
 # @name login
 POST {{baseUrl}}/auth/login
 Content-Type: application/json
@@ -40,11 +41,57 @@ Content-Type: application/json
   "password": "password123"
 }
 
+### Login User
+# @name loginUser
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "password": "password123"
+}
+
 ### -> Note: Copy the "token" from the login response and paste it below for protected routes!
 @authToken = YOUR_TOKEN_HERE
+@userToken = YOUR_USER_TOKEN_HERE
 
----
-### 5. Create an Event (Requires ORGANIZER or ADMIN role)
+### Refresh Token
+POST {{baseUrl}}/auth/refresh
+
+### Logout
+POST {{baseUrl}}/auth/logout
+
+### ---------------------------------------------------------
+### USERS
+### ---------------------------------------------------------
+
+### Get Profile
+GET {{baseUrl}}/users/profile
+Authorization: Bearer {{userToken}}
+
+### Update Profile
+PUT {{baseUrl}}/users/profile
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "name": "John Updated",
+  "bio": "I love tech events."
+}
+
+### Get Public Profile
+GET {{baseUrl}}/users/public/USER_ID_HERE
+
+### Get Attendance History
+GET {{baseUrl}}/users/attendance
+Authorization: Bearer {{userToken}}
+
+### ---------------------------------------------------------
+### EVENTS
+### ---------------------------------------------------------
+
+### Create an Event (ORGANIZER or ADMIN)
+# @name createEvent
 POST {{baseUrl}}/events
 Authorization: Bearer {{authToken}}
 Content-Type: multipart/form-data; boundary=boundary
@@ -56,7 +103,7 @@ Awesome Tech Conference 2026
 --boundary
 Content-Disposition: form-data; name="description"
 
-The biggest tech conference in the world, featuring AI and Web3.
+The biggest tech conference in the world.
 --boundary
 Content-Disposition: form-data; name="date"
 
@@ -70,10 +117,6 @@ Content-Disposition: form-data; name="category"
 
 Technology
 --boundary
-Content-Disposition: form-data; name="tags"
-
-AI, Web3, Networking
---boundary
 Content-Disposition: form-data; name="maxTickets"
 
 500
@@ -83,6 +126,205 @@ Content-Disposition: form-data; name="price"
 99.99
 --boundary--
 
----
-### 6. Get All Approved Events
+@eventId = EVENT_ID_HERE
+
+### Get All Approved Events
 GET {{baseUrl}}/events
+
+### Get Event By ID
+GET {{baseUrl}}/events/{{eventId}}
+
+### Get Organizer Events
+GET {{baseUrl}}/events/my/events
+Authorization: Bearer {{authToken}}
+
+### Get Recommended Events
+GET {{baseUrl}}/events/recommended
+Authorization: Bearer {{userToken}}
+
+### Update Event (ORGANIZER or ADMIN)
+PUT {{baseUrl}}/events/{{eventId}}
+Authorization: Bearer {{authToken}}
+Content-Type: multipart/form-data; boundary=boundary
+
+--boundary
+Content-Disposition: form-data; name="title"
+
+Awesome Tech Conference 2026 (Updated)
+--boundary--
+
+### Update Event Status
+PATCH {{baseUrl}}/events/{{eventId}}/status
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "status": "PUBLISHED"
+}
+
+### Delete Event
+DELETE {{baseUrl}}/events/{{eventId}}
+Authorization: Bearer {{authToken}}
+
+### ---------------------------------------------------------
+### BOOKINGS
+### ---------------------------------------------------------
+
+### Create Booking
+# @name createBooking
+POST {{baseUrl}}/bookings
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "eventId": "{{eventId}}"
+}
+
+@bookingId = BOOKING_ID_HERE
+
+### Get My Bookings
+GET {{baseUrl}}/bookings/my
+Authorization: Bearer {{userToken}}
+
+### Check Booking Status
+GET {{baseUrl}}/bookings/event/{{eventId}}/status
+Authorization: Bearer {{userToken}}
+
+### Download Ticket
+GET {{baseUrl}}/bookings/{{bookingId}}/ticket
+Authorization: Bearer {{userToken}}
+
+### Cancel Booking
+PATCH {{baseUrl}}/bookings/{{bookingId}}/cancel
+Authorization: Bearer {{userToken}}
+
+### ---------------------------------------------------------
+### ORGANIZER
+### ---------------------------------------------------------
+
+### Get Event Attendees
+GET {{baseUrl}}/organizer/event/{{eventId}}/attendees
+Authorization: Bearer {{authToken}}
+
+### Update Booking Status
+PATCH {{baseUrl}}/organizer/booking/{{bookingId}}/status
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "status": "CONFIRMED"
+}
+
+### Remove Attendee
+DELETE {{baseUrl}}/organizer/booking/{{bookingId}}
+Authorization: Bearer {{authToken}}
+
+### Generate Invite Link
+POST {{baseUrl}}/organizer/event/{{eventId}}/invite-link
+Authorization: Bearer {{authToken}}
+
+### ---------------------------------------------------------
+### REVIEWS
+### ---------------------------------------------------------
+
+### Create Review
+POST {{baseUrl}}/reviews
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "eventId": "{{eventId}}",
+  "rating": 5,
+  "comment": "Amazing event!"
+}
+
+@reviewId = REVIEW_ID_HERE
+
+### Get Event Reviews
+GET {{baseUrl}}/reviews/event/{{eventId}}
+
+### Delete Review
+DELETE {{baseUrl}}/reviews/{{reviewId}}
+Authorization: Bearer {{authToken}}
+
+### ---------------------------------------------------------
+### TAGS
+### ---------------------------------------------------------
+
+### Get All Tags
+GET {{baseUrl}}/tags
+
+### Create Tag (ADMIN/ORGANIZER)
+POST {{baseUrl}}/tags
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "name": "Networking",
+  "color": "#ff0000"
+}
+
+@tagId = TAG_ID_HERE
+
+### Delete Tag (ADMIN)
+DELETE {{baseUrl}}/tags/{{tagId}}
+Authorization: Bearer {{authToken}}
+
+### ---------------------------------------------------------
+### EVENT FORMS
+### ---------------------------------------------------------
+
+### Get Event Form
+GET {{baseUrl}}/event-forms/{{eventId}}
+
+### Update Event Form
+PUT {{baseUrl}}/event-forms/{{eventId}}
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "schema": {
+    "fields": [
+      {
+        "type": "text",
+        "name": "company",
+        "label": "Company Name",
+        "required": true
+      }
+    ]
+  }
+}
+
+### ---------------------------------------------------------
+### ADMIN
+### ---------------------------------------------------------
+
+### Get Stats
+GET {{baseUrl}}/admin/stats
+Authorization: Bearer {{authToken}}
+
+### Get Users
+GET {{baseUrl}}/admin/users
+Authorization: Bearer {{authToken}}
+
+### Get Pending Events
+GET {{baseUrl}}/admin/events/pending
+Authorization: Bearer {{authToken}}
+
+### Approve Event
+PATCH {{baseUrl}}/admin/events/{{eventId}}/approve
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "status": "APPROVED"
+}
+
+### Update User Status
+PATCH {{baseUrl}}/admin/users/USER_ID_HERE
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "role": "ORGANIZER"
+}

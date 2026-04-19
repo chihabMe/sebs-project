@@ -60,4 +60,45 @@ describe('Events API', () => {
 
     expect(res.status).toBe(403);
   });
+
+  it('should fail to create an event with a past date', async () => {
+    const { token } = await createUser('ORGANIZER');
+    const t1 = await prisma.tag.create({ data: { name: 'past' } });
+
+    const res = await api.post('/api/events')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        title: 'Past Event',
+        description: 'This is in the past.',
+        date: new Date(Date.now() - 86400000).toISOString(),
+        location: 'Virtual',
+        price: 0,
+        maxTickets: 100,
+        category: 'Technology',
+        tags: [t1.id]
+      });
+
+    expect(res.status).toBe(400);
+    expect(res.body.success).toBe(false);
+  });
+
+  it('should return 404 for a non-existent event', async () => {
+    const res = await api.get('/api/events/00000000-0000-0000-0000-000000000000');
+    expect(res.status).toBe(404);
+    expect(res.body.success).toBe(false);
+  });
+
+  it('should fail to create an event with missing required fields', async () => {
+    const { token } = await createUser('ORGANIZER');
+
+    const res = await api.post('/api/events')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        title: 'Incomplete Event'
+        // Missing date, location, price, maxTickets
+      });
+
+    expect(res.status).toBe(400);
+    expect(res.body.success).toBe(false);
+  });
 });
