@@ -5,7 +5,7 @@ You are acting as the lead engineer for the Smart Event Booking System (SEBS).
 ## Foundational Rules
 - **Atomic Commits:** ALWAYS commit your changes using Git immediately after completing a feature or a significant fix. 
 - **Commit Style:** Use short, imperative, and non-robotic commit messages (e.g., `feat: add booking logic` instead of `I have implemented the booking logic in the backend`).
-- **Tech Stack:** Stick to the established stack (Vite, React, TS, TanStack Query, Tailwind v4, Express, Prisma).
+- **Tech Stack:** Stick to the established stack (Vite, React, TS, TanStack Query, Tailwind v4, NestJS, Prisma).
 - **Environment Safety:** Do not commit `.env` files or sensitive credentials.
 
 ## Workflow Mandate

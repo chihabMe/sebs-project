@@ -42,3 +42,7 @@
 [2026-04-16T10:18:04.092Z] WARN: Operational error {"errorId":"sej6fhq08fnjrs265tal","code":"INVALID_TOKEN","message":"Invalid or expired token"}
 [2026-04-16T10:18:32.865Z] ERROR: Unhandled error occurred {"errorId":"57xhynazffrhn2npde1bub","method":"GET","url":"/api/users/profile","userId":null,"userAgent":"Mozilla/5.0 (X11; Linux x86_64; rv:148.0) Gecko/20100101 Firefox/148.0","error":{"name":"Error","message":"Invalid or expired token"}}
 [2026-04-16T10:18:32.866Z] WARN: Operational error {"errorId":"57xhynazffrhn2npde1bub","code":"INVALID_TOKEN","message":"Invalid or expired token"}
+[2026-04-16T10:20:53.864Z] ERROR: Unhandled error occurred {"errorId":"gwx4wg9moe943ci00num8x","method":"GET","url":"/api/events/recommended","userId":null,"userAgent":"Mozilla/5.0 (X11; Linux x86_64; rv:148.0) Gecko/20100101 Firefox/148.0","error":{"name":"Error","message":"Event not found"}}
+[2026-04-16T10:20:53.864Z] WARN: Operational error {"errorId":"gwx4wg9moe943ci00num8x","code":"EVENT_NOT_FOUND","message":"Event not found"}
+[2026-04-16T10:21:04.810Z] ERROR: Unhandled error occurred {"errorId":"j9idpjub6zdpfit2k5h38","method":"GET","url":"/api/events/recommended","userId":null,"userAgent":"Mozilla/5.0 (X11; Linux x86_64; rv:148.0) Gecko/20100101 Firefox/148.0","error":{"name":"Error","message":"Event not found"}}
+[2026-04-16T10:21:04.811Z] WARN: Operational error {"errorId":"j9idpjub6zdpfit2k5h38","code":"EVENT_NOT_FOUND","message":"Event not found"}
