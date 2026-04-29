@@ -1,7 +1,7 @@
 import { Controller, Get, Patch, Body, Param, UseGuards, ParseUUIDPipe, UseInterceptors, UploadedFile, BadRequestException } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
-import { extname } from 'path';
+import { extname, join } from 'path';
 import { UsersService } from './users.service';
 import { UpdateProfileDto } from './dto/user.dto';
 import { AuthGuard } from '../auth/guards/auth.guard';
@@ -10,7 +10,7 @@ import { ApiTags, ApiOperation, ApiConsumes } from '@nestjs/swagger';
 
 const imageUploadOptions = {
   storage: diskStorage({
-    destination: './uploads',
+    destination: join(process.cwd(), 'uploads'),
     filename: (req, file, cb) => {
       const randomName = Array(32).fill(null).map(() => (Math.round(Math.random() * 16)).toString(16)).join('');
       return cb(null, `${Date.now()}-${randomName}${extname(file.originalname)}`);

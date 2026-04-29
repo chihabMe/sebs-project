@@ -173,18 +173,6 @@ export default function HomePage() {
         </section>
       </main>
 
-      {/* Footer */}
-      <footer className="bg-surface-container-highest py-12 px-6 border-t border-outline-variant/20">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-              <span className="material-symbols-outlined text-on-primary text-sm">bolt</span>
-            </div>
-            <span className="font-headline font-bold">Indigo Pulse</span>
-          </div>
-          <p className="text-on-surface-variant text-sm">&copy; 2026 Indigo Pulse. All rights reserved.</p>
-        </div>
-      </footer>
     </div>
   );
 }

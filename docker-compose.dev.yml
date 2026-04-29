@@ -2,7 +2,7 @@ services:
   firestore-dev:
     image: gcr.io/google.com/cloudsdktool/google-cloud-cli:emulators
     restart: unless-stopped
-    command: gcloud beta emulators firestore start --host-port=0.0.0.0:8080 --project=eventify-dev
+    command: gcloud beta emulators firestore start --host-port=0.0.0.0:8080 --project=${FIRESTORE_PROJECT_ID:-eventify-dev}
     ports:
       - "8085:8080"
     networks:
@@ -37,8 +37,8 @@ services:
         pnpm --filter @sebs/backend db:seed
     environment:
       NODE_ENV: development
-      FIRESTORE_PROJECT_ID: eventify-dev
-      FIRESTORE_EMULATOR_HOST: firestore-dev:8080
+      FIRESTORE_PROJECT_ID: ${FIRESTORE_PROJECT_ID:-eventify-dev}
+      FIRESTORE_EMULATOR_HOST: ${FIRESTORE_EMULATOR_HOST:-firestore-dev:8080}
     depends_on:
       deps-dev:
         condition: service_completed_successfully
@@ -66,11 +66,15 @@ services:
     environment:
       PORT: 4000
       NODE_ENV: development
-      FRONTEND_URLS: https://eventify-dev.local.home,https://eventify-admin-dev.local.home
-      FIRESTORE_PROJECT_ID: eventify-dev
-      FIRESTORE_EMULATOR_HOST: firestore-dev:8080
-      JWT_SECRET: supersecretfallback
-      JWT_REFRESH_SECRET: refreshsecretfallback
+      FRONTEND_URLS: ${FRONTEND_URLS:-https://eventify-dev.local.home,https://eventify-admin-dev.local.home}
+      FRONTEND_PUBLIC_URL: ${WEB_APP_URL:-https://eventify-dev.local.home}
+      WEB_APP_URL: ${WEB_APP_URL:-https://eventify-dev.local.home}
+      FIRESTORE_PROJECT_ID: ${FIRESTORE_PROJECT_ID:-eventify-dev}
+      FIRESTORE_EMULATOR_HOST: ${FIRESTORE_EMULATOR_HOST:-firestore-dev:8080}
+      JWT_SECRET: ${JWT_SECRET:-supersecretfallback}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-refreshsecretfallback}
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      MAIL_FROM: ${MAIL_FROM:-Eventify <onboarding@resend.dev>}
       CHOKIDAR_USEPOLLING: "true"
       WATCHPACK_POLLING: "true"
     depends_on:
@@ -90,14 +94,14 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=traefik-network"
-      - "traefik.http.routers.eventify-dev-api.rule=Host(`eventify-api-dev.local.home`)"
+      - "traefik.http.routers.eventify-dev-api.rule=Host(`${API_DOMAIN:-eventify-api-dev.local.home}`)"
       - "traefik.http.routers.eventify-dev-api.entrypoints=web,websecure"
       - "traefik.http.routers.eventify-dev-api.tls=true"
-      - "traefik.http.routers.eventify-dev-web-api.rule=Host(`eventify-dev.local.home`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.eventify-dev-web-api.rule=Host(`${APP_DOMAIN:-eventify-dev.local.home}`) && PathPrefix(`/api`)"
       - "traefik.http.routers.eventify-dev-web-api.entrypoints=web,websecure"
       - "traefik.http.routers.eventify-dev-web-api.tls=true"
       - "traefik.http.routers.eventify-dev-web-api.priority=100"
-      - "traefik.http.routers.eventify-dev-admin-api.rule=Host(`eventify-admin-dev.local.home`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.eventify-dev-admin-api.rule=Host(`${ADMIN_DOMAIN:-eventify-admin-dev.local.home}`) && PathPrefix(`/api`)"
       - "traefik.http.routers.eventify-dev-admin-api.entrypoints=web,websecure"
       - "traefik.http.routers.eventify-dev-admin-api.tls=true"
       - "traefik.http.routers.eventify-dev-admin-api.priority=100"
@@ -114,7 +118,7 @@ services:
         pnpm --filter @sebs/frontend exec vite --host 0.0.0.0 --port 5173
     environment:
       VITE_API_URL: /api
-      VITE_ADMIN_URL: https://eventify-admin-dev.local.home
+      VITE_ADMIN_URL: ${ADMIN_APP_URL:-https://eventify-admin-dev.local.home}
       CHOKIDAR_USEPOLLING: "true"
       WATCHPACK_POLLING: "true"
     depends_on:
@@ -134,7 +138,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=traefik-network"
-      - "traefik.http.routers.eventify-dev-web.rule=Host(`eventify-dev.local.home`)"
+      - "traefik.http.routers.eventify-dev-web.rule=Host(`${APP_DOMAIN:-eventify-dev.local.home}`)"
       - "traefik.http.routers.eventify-dev-web.entrypoints=web,websecure"
       - "traefik.http.routers.eventify-dev-web.tls=true"
       - "traefik.http.services.eventify-dev-web.loadbalancer.server.port=5173"
@@ -150,7 +154,7 @@ services:
         pnpm --filter @sebs/admin exec vite --host 0.0.0.0 --port 5174
     environment:
       VITE_API_URL: /api
-      VITE_WEB_URL: https://eventify-dev.local.home
+      VITE_WEB_URL: ${WEB_APP_URL:-https://eventify-dev.local.home}
       CHOKIDAR_USEPOLLING: "true"
       WATCHPACK_POLLING: "true"
     depends_on:
@@ -170,7 +174,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=traefik-network"
-      - "traefik.http.routers.eventify-dev-admin.rule=Host(`eventify-admin-dev.local.home`)"
+      - "traefik.http.routers.eventify-dev-admin.rule=Host(`${ADMIN_DOMAIN:-eventify-admin-dev.local.home}`)"
       - "traefik.http.routers.eventify-dev-admin.entrypoints=web,websecure"
       - "traefik.http.routers.eventify-dev-admin.tls=true"
       - "traefik.http.services.eventify-dev-admin.loadbalancer.server.port=5174"
@@ -189,7 +193,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=traefik-network"
-      - "traefik.http.routers.eventify-dev-logs.rule=Host(`eventify-logs-dev.local.home`)"
+      - "traefik.http.routers.eventify-dev-logs.rule=Host(`${LOGS_DOMAIN:-eventify-logs-dev.local.home}`)"
       - "traefik.http.routers.eventify-dev-logs.entrypoints=web,websecure"
       - "traefik.http.routers.eventify-dev-logs.tls=true"
       - "traefik.http.services.eventify-dev-logs.loadbalancer.server.port=8080"

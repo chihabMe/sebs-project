@@ -1,9 +1,11 @@
 import { Injectable, UnauthorizedException, BadRequestException, ForbiddenException, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
+import { createHash, randomBytes } from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
-import { RegisterDto, LoginDto } from './dto/auth.dto';
+import { RegisterDto, LoginDto, ForgotPasswordDto, ResetPasswordDto } from './dto/auth.dto';
 import { ConfigService } from '@nestjs/config';
+import { MailService } from '../mail/mail.service';
 
 @Injectable()
 export class AuthService {
@@ -13,6 +15,7 @@ export class AuthService {
     private prisma: PrismaService,
     private jwtService: JwtService,
     private configService: ConfigService,
+    private mailService: MailService,
   ) {}
 
   private getJwtSecret(name: 'JWT_SECRET' | 'JWT_REFRESH_SECRET', developmentFallback: string) {
@@ -20,6 +23,17 @@ export class AuthService {
     if (configured) return configured;
     if (process.env.NODE_ENV !== 'production') return developmentFallback;
     throw new Error(`${name} must be configured in production`);
+  }
+
+  private hashResetToken(token: string) {
+    return createHash('sha256').update(token).digest('hex');
+  }
+
+  private getFrontendUrl() {
+    const configured = this.configService.get<string>('FRONTEND_PUBLIC_URL') || this.configService.get<string>('WEB_APP_URL');
+    if (configured) return configured.replace(/\/+$/, '');
+    if (process.env.NODE_ENV !== 'production') return 'http://localhost:5173';
+    throw new Error('FRONTEND_PUBLIC_URL or WEB_APP_URL must be configured in production');
   }
 
   async register(dto: RegisterDto) {
@@ -73,6 +87,56 @@ export class AuthService {
 
     const tokens = await this.getTokens(user.id, user.role);
     return { user, ...tokens };
+  }
+
+  async forgotPassword(dto: ForgotPasswordDto) {
+    const email = dto.email.toLowerCase().trim();
+    const user = await this.prisma.user.findUnique({ where: { email } });
+
+    if (!user || user.isBanned) {
+      this.logger.warn(`password_reset_requested no_eligible_user email=${email}`);
+      return;
+    }
+
+    const token = randomBytes(32).toString('hex');
+    const tokenHash = this.hashResetToken(token);
+    const expiresAt = new Date(Date.now() + 30 * 60 * 1000);
+
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        passwordResetTokenHash: tokenHash,
+        passwordResetExpiresAt: expiresAt,
+        passwordResetRequestedAt: new Date(),
+      },
+    });
+
+    const resetUrl = `${this.getFrontendUrl()}/reset-password?token=${encodeURIComponent(token)}`;
+    await this.mailService.sendPasswordResetEmail(user, resetUrl);
+    this.logger.log(`password_reset_email_queued userId=${user.id} email=${email}`);
+  }
+
+  async resetPassword(dto: ResetPasswordDto) {
+    const tokenHash = this.hashResetToken(dto.token);
+    const user = await this.prisma.user.findUnique({ where: { passwordResetTokenHash: tokenHash } });
+
+    if (!user || !user.passwordResetExpiresAt || new Date(user.passwordResetExpiresAt) < new Date()) {
+      throw new BadRequestException('Invalid or expired reset link');
+    }
+
+    const hashedPassword = await bcrypt.hash(dto.password, 12);
+
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        password: hashedPassword,
+        passwordResetTokenHash: null,
+        passwordResetExpiresAt: null,
+        passwordResetRequestedAt: null,
+      },
+    });
+
+    this.logger.log(`password_reset_succeeded userId=${user.id} email=${user.email}`);
   }
 
   async refresh(refreshToken: string) {

@@ -20,7 +20,7 @@ export class MailService {
       }
       
       const { data, error } = await this.resend.emails.send({
-        from: 'SEBS <onboarding@resend.dev>',
+        from: this.configService.get<string>('MAIL_FROM') || 'Eventify <onboarding@resend.dev>',
         to,
         subject,
         text,
@@ -54,7 +54,7 @@ export class MailService {
         </div>
         <p style="font-size: 14px; color: #8c716d;">Please have your digital ticket ready at the entrance.</p>
         <hr style="border: 0; border-top: 1px solid #66000010; margin: 32px 0;">
-        <p style="font-size: 12px; color: #8c716d; text-align: center;">Indigo Pulse Archive Node</p>
+        <p style="font-size: 12px; color: #8c716d; text-align: center;">Eventify</p>
       </div>
     `;
 
@@ -83,8 +83,29 @@ export class MailService {
   }
 
   async sendWelcomeEmail(user: any) {
-    const subject = 'Welcome to Indigo Pulse Archive';
+    const subject = 'Welcome to Eventify';
     const text = `Welcome ${user.name} to our community of curators and explorers.`;
     return this.sendEmail(user.email, subject, text);
+  }
+
+  async sendPasswordResetEmail(user: any, resetUrl: string) {
+    const subject = 'Reset your Eventify password';
+    const text = `Hi ${user.name},\n\nWe received a request to reset your Eventify password.\n\nOpen this link to set a new password: ${resetUrl}\n\nThis link expires in 30 minutes. If you did not request this, you can ignore this email.`;
+
+    const html = `
+      <div style="font-family: sans-serif; color: #172426; max-width: 600px; margin: 0 auto; border: 1px solid #0d5c6315; padding: 40px; border-radius: 20px;">
+        <h1 style="color: #0d5c63; font-size: 24px; font-weight: 900; letter-spacing: -0.02em;">Reset your Eventify password</h1>
+        <p style="font-size: 16px; line-height: 1.6;">Hi <strong>${user.name}</strong>,</p>
+        <p style="font-size: 16px; line-height: 1.6;">We received a request to reset your password. Use the button below to choose a new one.</p>
+        <p style="margin: 28px 0;">
+          <a href="${resetUrl}" style="display: inline-block; background: #0d5c63; color: #ffffff; padding: 14px 22px; border-radius: 12px; text-decoration: none; font-weight: 800;">Reset password</a>
+        </p>
+        <p style="font-size: 14px; color: #5f6f72;">This link expires in 30 minutes. If you did not request this, you can ignore this email.</p>
+        <hr style="border: 0; border-top: 1px solid #0d5c6315; margin: 32px 0;">
+        <p style="font-size: 12px; color: #5f6f72; text-align: center;">Eventify</p>
+      </div>
+    `;
+
+    return this.sendEmail(user.email, subject, text, html);
   }
 }

@@ -194,7 +194,18 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
   }
 
   private defaultsFor(model: ModelName, now: Date) {
-    if (model === 'user') return { role: 'USER', isBanned: false, avatar: null, bio: null, tagIds: [] };
+    if (model === 'user') {
+      return {
+        role: 'USER',
+        isBanned: false,
+        avatar: null,
+        bio: null,
+        tagIds: [],
+        passwordResetTokenHash: null,
+        passwordResetExpiresAt: null,
+        passwordResetRequestedAt: null,
+      };
+    }
     if (model === 'event') {
       return {
         status: 'UPCOMING',
@@ -267,6 +278,9 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
   private async findRawUnique(model: ModelName, where: AnyRecord) {
     if (where.id) return this.getById(model, where.id);
     if (model === 'user' && where.email) return this.findFirstByFields(model, { email: where.email });
+    if (model === 'user' && where.passwordResetTokenHash) {
+      return this.findFirstByFields(model, { passwordResetTokenHash: where.passwordResetTokenHash });
+    }
     if (model === 'tag' && where.name) return this.findFirstByFields(model, { name: where.name });
     if ((model === 'booking' || model === 'review') && where.userId_eventId) {
       return this.findFirstByFields(model, where.userId_eventId);

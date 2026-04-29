@@ -11,13 +11,13 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { GetUser } from '../auth/decorators/get-user.decorator';
 import { ApiTags, ApiOperation, ApiConsumes } from '@nestjs/swagger';
 import { diskStorage } from 'multer';
-import { extname } from 'path';
+import { extname, join } from 'path';
 import { UpdateEventStatusDto } from './dto/update-event-status.dto';
 import { EventsQueryDto } from './dto/events-query.dto';
 
 const imageUploadOptions = {
   storage: diskStorage({
-    destination: './uploads',
+    destination: join(process.cwd(), 'uploads'),
     filename: (req, file, cb) => {
       const randomName = Array(32).fill(null).map(() => (Math.round(Math.random() * 16)).toString(16)).join('');
       return cb(null, `${Date.now()}-${randomName}${extname(file.originalname)}`);

@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../api/client';
 import { useAuth } from '../../hooks/useAuth';
 import { Button } from '../ui/button';
-import { Star, MessageSquare } from 'lucide-react';
+import { Star, MessageCircleHeart } from 'lucide-react';
 import { useToast } from '../ui/toast-provider';
 import { format } from 'date-fns';
 
@@ -16,10 +16,9 @@ export default function EventReviews({ eventId, hasAttended }: EventReviewsProps
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const { showToast } = useToast();
-  
+
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { data: reviewsData, isLoading } = useQuery({
     queryKey: ['event-reviews', eventId],
@@ -39,103 +38,146 @@ export default function EventReviews({ eventId, hasAttended }: EventReviewsProps
       setComment('');
       setRating(5);
       showToast('Review submitted successfully!', 'success');
-      setIsSubmitting(false);
     },
     onError: (err: any) => {
       showToast(err.response?.data?.message || 'Failed to submit review.', 'error');
-      setIsSubmitting(false);
     },
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    submitReviewMutation.mutate();
-  };
-
   const reviews = reviewsData?.reviews || [];
   const stats = reviewsData?.stats || { averageRating: 0, totalReviews: 0 };
+  const canReview = hasAttended && !!user;
 
   return (
     <section className="space-y-8 mt-16 pt-16 border-t border-primary/10">
       <div className="flex items-center gap-4">
-         <h2 className="text-3xl font-black tracking-tight font-headline text-primary uppercase">Community Pulse</h2>
-         <div className="h-px bg-primary/10 flex-grow"></div>
+        <h2 className="text-3xl font-black tracking-tight font-headline text-primary uppercase">Reviews</h2>
+        <div className="h-px bg-primary/10 flex-grow" />
       </div>
 
-      <div className="bg-surface-container-low rounded-3xl p-8 border border-primary/5 shadow-sm flex flex-col md:flex-row gap-8 items-center">
-        <div className="text-center">
-          <p className="text-5xl font-black text-primary font-headline">{Number(stats.averageRating).toFixed(1)}</p>
-          <div className="flex justify-center gap-1 my-2 text-secondary">
+      <div className="grid gap-6 lg:grid-cols-[240px_minmax(0,1fr)]">
+        <div className="bg-surface-container-low rounded-[1.75rem] p-6 border border-primary/5 shadow-sm">
+          <p className="text-[10px] uppercase tracking-[0.2em] font-black text-outline mb-2">Average rating</p>
+          <div className="flex items-end gap-3">
+            <span className="text-5xl font-black text-primary font-headline leading-none">{Number(stats.averageRating).toFixed(1)}</span>
+            <span className="text-sm text-outline pb-1">/ 5</span>
+          </div>
+          <div className="flex gap-1 my-4 text-secondary">
             {[1, 2, 3, 4, 5].map((star) => (
-              <Star key={star} className={`w-5 h-5 ${star <= Math.round(stats.averageRating) ? 'fill-current' : 'text-outline/30'}`} />
+              <Star key={star} className={`w-4 h-4 ${star <= Math.round(stats.averageRating) ? 'fill-current' : 'text-outline/30'}`} />
             ))}
           </div>
-          <p className="text-[10px] uppercase font-bold tracking-widest text-outline">{stats.totalReviews} Reviews</p>
+          <p className="text-[10px] uppercase font-bold tracking-widest text-outline">{stats.totalReviews} reviews</p>
         </div>
-        
-        {hasAttended && user && (
-          <div className="flex-1 w-full border-t md:border-t-0 md:border-l border-primary/10 pt-8 md:pt-0 md:pl-8">
-            <h3 className="text-sm font-bold uppercase tracking-widest mb-4">Share Your Experience</h3>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="text-[10px] uppercase font-bold text-outline block mb-2">Rating</label>
-                <div className="flex gap-2">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <button
-                      key={star}
-                      type="button"
-                      onClick={() => setRating(star)}
-                      className={`text-2xl transition-transform hover:scale-110 ${rating >= star ? 'text-secondary' : 'text-outline/30'}`}
-                    >
-                      ★
-                    </button>
-                  ))}
+
+        <div className="bg-surface-container-low rounded-[1.75rem] p-6 border border-primary/5 shadow-sm">
+          <div className="flex items-start gap-4">
+            <div className="w-10 h-10 rounded-2xl bg-primary/5 border border-primary/10 flex items-center justify-center shrink-0">
+              <MessageCircleHeart className="w-5 h-5 text-primary" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-sm font-black uppercase tracking-widest">Leave feedback</h3>
+              <p className="text-sm text-outline mt-1 max-w-2xl">
+                {canReview
+                  ? 'Share a short, useful review for future attendees.'
+                  : 'Only attendees can post a review after attending the event.'}
+              </p>
+            </div>
+          </div>
+
+          {canReview && (
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                submitReviewMutation.mutate();
+              }}
+              className="mt-5 space-y-4"
+            >
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <label className="text-[10px] uppercase font-black tracking-widest text-outline block mb-2">Rating</label>
+                  <div className="flex flex-wrap gap-2">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        key={star}
+                        type="button"
+                        onClick={() => setRating(star)}
+                        className={`flex h-10 w-10 items-center justify-center rounded-xl border transition-all ${
+                          rating >= star ? 'bg-primary text-on-primary border-primary shadow-sm' : 'bg-surface-container-high text-outline border-outline-variant/20 hover:border-primary/20'
+                        }`}
+                      >
+                        <Star className={`w-4 h-4 ${rating >= star ? 'fill-current' : ''}`} />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="text-[10px] uppercase font-black tracking-widest text-outline">Tip</p>
+                  <p className="text-sm text-on-surface/70">Be specific and concise.</p>
                 </div>
               </div>
+
               <textarea
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
-                placeholder="What was the vibe like?"
-                className="w-full bg-surface-container-high border-none rounded-xl p-3 text-sm focus:ring-2 focus:ring-primary/20"
-                rows={3}
-              ></textarea>
-              <Button type="submit" disabled={isSubmitting || !comment.trim()} className="w-full sm:w-auto">
-                {isSubmitting ? 'Submitting...' : 'Post Review'}
-              </Button>
+                placeholder="What stood out?"
+                className="w-full min-h-28 bg-surface-container-high border border-outline-variant/20 rounded-2xl p-4 text-sm focus:ring-2 focus:ring-primary/20 outline-none resize-none"
+                rows={4}
+              />
+
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-[10px] uppercase tracking-widest text-outline">
+                  {comment.trim().length}/240
+                </p>
+                <Button
+                  type="submit"
+                  disabled={submitReviewMutation.isPending || !comment.trim()}
+                  className="px-6"
+                >
+                  {submitReviewMutation.isPending ? 'Submitting...' : 'Post Review'}
+                </Button>
+              </div>
             </form>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       <div className="space-y-4">
         {isLoading ? (
-          <div className="animate-pulse space-y-4">
-            <div className="h-24 bg-surface-container-low rounded-2xl"></div>
-            <div className="h-24 bg-surface-container-low rounded-2xl"></div>
+          <div className="grid gap-4">
+            {[1, 2].map((item) => (
+              <div key={item} className="animate-pulse bg-surface-container-low rounded-[1.5rem] p-5 border border-primary/5">
+                <div className="h-4 w-32 bg-slate-200 rounded-full mb-3" />
+                <div className="h-3 w-full bg-slate-200 rounded-full mb-2" />
+                <div className="h-3 w-5/6 bg-slate-200 rounded-full" />
+              </div>
+            ))}
           </div>
         ) : reviews.length > 0 ? (
-          reviews.map((review: any) => (
-            <div key={review.id} className="bg-surface-container-lowest p-6 rounded-2xl border border-primary/5 shadow-sm">
-              <div className="flex justify-between items-start mb-3">
-                <div>
-                  <h4 className="font-bold text-sm">{review.user.name}</h4>
-                  <span className="text-[10px] text-outline font-medium">{format(new Date(review.createdAt), 'MMM dd, yyyy')}</span>
+          <div className="grid gap-3">
+            {reviews.map((review: any) => (
+              <div key={review.id} className="bg-surface-container-lowest p-5 rounded-[1.5rem] border border-primary/5 shadow-sm">
+                <div className="flex items-start justify-between gap-4 mb-3">
+                  <div>
+                    <h4 className="font-bold text-sm text-on-surface">{review.user.name}</h4>
+                    <span className="text-[10px] text-outline font-medium">{format(new Date(review.createdAt), 'MMM dd, yyyy')}</span>
+                  </div>
+                  <div className="flex gap-1 text-secondary shrink-0">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <Star key={star} className={`w-3 h-3 ${star <= review.rating ? 'fill-current' : 'text-outline/30'}`} />
+                    ))}
+                  </div>
                 </div>
-                <div className="flex gap-1 text-secondary">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <Star key={star} className={`w-3 h-3 ${star <= review.rating ? 'fill-current' : 'text-outline/30'}`} />
-                  ))}
-                </div>
+                <p className="text-on-surface-variant text-sm leading-relaxed">
+                  {review.comment || 'No comment provided.'}
+                </p>
               </div>
-              <p className="text-on-surface-variant text-sm flex gap-2">
-                <MessageSquare className="w-4 h-4 shrink-0 mt-0.5 text-outline/50" />
-                {review.comment}
-              </p>
-            </div>
-          ))
+            ))}
+          </div>
         ) : (
-          <p className="text-center text-outline text-sm italic py-8">No reviews yet. The archive awaits your feedback.</p>
+          <div className="text-center py-10 bg-surface-container-low rounded-[1.5rem] border border-dashed border-primary/10">
+            <p className="text-outline text-sm italic">No reviews yet. Be the first to share one.</p>
+          </div>
         )}
       </div>
     </section>

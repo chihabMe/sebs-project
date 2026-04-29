@@ -4,12 +4,12 @@ import {
   DropdownMenu, 
   DropdownMenuContent, 
   DropdownMenuItem, 
-  DropdownMenuLabel, 
-  DropdownMenuSeparator, 
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger 
 } from '../ui/dropdown-menu';
 import { Button } from '../ui/button';
-import { ChevronDown, User, LogOut, LayoutDashboard, Info, HeartHandshake, Menu } from 'lucide-react';
+import { ChevronDown, User, LogOut, LayoutDashboard, Menu } from 'lucide-react';
 
 export default function Header() {
   const { user, isAuthenticated, logout, isLoading } = useAuth();
@@ -36,47 +36,18 @@ export default function Header() {
                     Experiences
                   </DropdownMenuItem>
                 </Link>
-                <DropdownMenuSeparator />
-                <DropdownMenuLabel className="text-[10px] uppercase font-bold text-outline">About</DropdownMenuLabel>
-                <DropdownMenuItem className="gap-2">
-                  <Info className="w-4 h-4" /> Our Mission
-                </DropdownMenuItem>
-                <DropdownMenuItem className="gap-2">
-                  <HeartHandshake className="w-4 h-4" /> Community Pulse
-                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
 
           <Link to="/" className="flex items-center gap-3 group cursor-pointer shrink-0">
-            <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center group-hover:rotate-12 transition-transform">
-              <span className="material-symbols-outlined text-on-primary">bolt</span>
-            </div>
-            <span className="text-xl font-black text-on-surface font-headline tracking-tight uppercase hidden sm:inline-block">Indigo Pulse</span>
+            <img src="/logo.svg" alt="Eventify logo" className="w-10 h-10 rounded-xl shadow-sm group-hover:rotate-6 transition-transform" />
+            <span className="text-xl font-black text-on-surface font-headline tracking-tight uppercase hidden sm:inline-block">Eventify</span>
           </Link>
           
           <nav className="hidden lg:flex items-center gap-6">
             <Link to="/" className="text-outline hover:text-primary font-bold text-xs uppercase tracking-widest transition-colors">Home</Link>
             <Link to="/events" className="text-outline hover:text-primary font-bold text-xs uppercase tracking-widest transition-colors">Experiences</Link>
-            
-            <DropdownMenu>
-              <DropdownMenuTrigger className="flex items-center gap-1 text-outline hover:text-primary font-bold text-xs uppercase tracking-widest transition-colors outline-none">
-                About <ChevronDown className="w-3 h-3" />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="mt-2">
-                <DropdownMenuLabel>The Archive</DropdownMenuLabel>
-                <DropdownMenuItem className="gap-2">
-                  <Info className="w-4 h-4" /> Our Mission
-                </DropdownMenuItem>
-                <DropdownMenuItem className="gap-2">
-                  <HeartHandshake className="w-4 h-4" /> Community Pulse
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem className="gap-2 text-[10px] uppercase font-bold text-outline">
-                  Curator Registry
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
           </nav>
         </div>
 
@@ -134,10 +105,10 @@ export default function Header() {
           ) : (
             <div className="flex items-center gap-2">
               <Link to="/login">
-                <Button variant="ghost" size="sm" className="hidden sm:inline-flex">Identity Registry</Button>
+                <Button variant="ghost" size="sm" className="hidden sm:inline-flex">Login</Button>
               </Link>
               <Link to="/register">
-                <Button size="sm">New Artifact</Button>
+                <Button size="sm">Register</Button>
               </Link>
             </div>
           )}

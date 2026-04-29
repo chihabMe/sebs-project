@@ -55,9 +55,9 @@ export default function LoginPage() {
   return (
     <div className="bg-background text-on-background min-h-screen flex flex-col">
       <header className="fixed top-0 w-full z-50 bg-[#faf4ff]/80 backdrop-blur-xl flex justify-center items-center px-6 py-6">
-        <Link to="/" className="flex items-center gap-2">
-          <span className="material-symbols-outlined text-primary text-3xl">bolt</span>
-          <h1 className="text-xl font-black text-on-surface font-headline tracking-tight">Indigo Pulse</h1>
+        <Link to="/" className="flex items-center gap-3">
+          <img src="/logo.svg" alt="Eventify logo" className="w-9 h-9 rounded-xl" />
+          <h1 className="text-xl font-black text-on-surface font-headline tracking-tight">Eventify</h1>
         </Link>
       </header>
 
@@ -102,7 +102,7 @@ export default function LoginPage() {
                 <div className="space-y-2">
                   <div className="flex justify-between items-center px-1">
                     <label className="text-[0.75rem] font-bold text-on-surface uppercase tracking-widest block" htmlFor="password">Password</label>
-                    <Link to="#" className="text-[0.75rem] font-bold text-primary hover:underline transition-all">Forgot?</Link>
+                    <Link to="/forgot-password" className="text-[0.75rem] font-bold text-primary hover:underline transition-all">Forgot?</Link>
                   </div>
                   <div className="relative">
                     <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant/60 text-xl">lock</span>
@@ -144,7 +144,7 @@ export default function LoginPage() {
 
       <footer className="w-full py-8 px-6 mt-auto flex flex-col md:flex-row justify-center items-center gap-6">
         <div className="text-[0.75rem] text-on-surface-variant/60 font-medium tracking-wide">
-          © 2026 Indigo Pulse. All Rights Reserved.
+          © 2026 Eventify. All Rights Reserved.
         </div>
       </footer>
     </div>

@@ -5,6 +5,8 @@ describe('AuthController', () => {
     register: jest.fn(),
     login: jest.fn(),
     refresh: jest.fn(),
+    forgotPassword: jest.fn(),
+    resetPassword: jest.fn(),
     getAuthenticatedUser: jest.fn(),
   } as any;
 
@@ -59,6 +61,33 @@ describe('AuthController', () => {
     await expect(
       controller.adminLogin({ email: 'user@example.com', password: 'password123' }, createRes()),
     ).rejects.toThrow('Administrator access required');
+  });
+
+  it('forgotPassword should return a generic success message', async () => {
+    authService.forgotPassword.mockResolvedValue(undefined);
+
+    await expect(controller.forgotPassword({ email: 'user@example.com' })).resolves.toEqual({
+      success: true,
+      message: 'If an account exists for that email, a password reset link has been sent.',
+    });
+
+    expect(authService.forgotPassword).toHaveBeenCalledWith({ email: 'user@example.com' });
+  });
+
+  it('resetPassword should clear auth cookies and return success', async () => {
+    authService.resetPassword.mockResolvedValue(undefined);
+    const res = createRes();
+
+    await controller.resetPassword({ token: 'reset-token', password: 'newPassword123' }, res);
+
+    expect(authService.resetPassword).toHaveBeenCalledWith({ token: 'reset-token', password: 'newPassword123' });
+    expect(res.clearCookie).toHaveBeenCalledWith('accessToken', expect.objectContaining({ httpOnly: true }));
+    expect(res.clearCookie).toHaveBeenCalledWith('refreshToken', expect.objectContaining({ httpOnly: true }));
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith({
+      success: true,
+      message: 'Password reset successfully. Please log in with your new password.',
+    });
   });
 
   it('adminSession should return admin session payload', async () => {

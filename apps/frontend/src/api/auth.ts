@@ -51,3 +51,32 @@ export const logout = async () => {
     throw new Error(apiError.message);
   }
 };
+
+type ForgotPasswordPayload = {
+  email: string;
+};
+
+type ResetPasswordPayload = {
+  token: string;
+  password: string;
+};
+
+export const forgotPassword = async (data: ForgotPasswordPayload) => {
+  try {
+    const response = await api.post<ApiResponse>('/auth/forgot-password', data);
+    return response.data;
+  } catch (error) {
+    const apiError = handleApiError(error);
+    throw new Error(apiError.message);
+  }
+};
+
+export const resetPassword = async (data: ResetPasswordPayload) => {
+  try {
+    const response = await api.post<ApiResponse>('/auth/reset-password', data);
+    return response.data;
+  } catch (error) {
+    const apiError = handleApiError(error);
+    throw new Error(apiError.message);
+  }
+};

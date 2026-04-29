@@ -1,6 +1,8 @@
 import { Routes, Route, useLocation } from 'react-router-dom';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
+import ForgotPasswordPage from './pages/ForgotPasswordPage';
+import ResetPasswordPage from './pages/ResetPasswordPage';
 import RegisterPage from './pages/RegisterPage';
 import ProfilePage from './pages/ProfilePage';
 import DashboardPage from './pages/DashboardPage';
@@ -21,7 +23,7 @@ import { useAuth } from './hooks/useAuth';
 function App() {
   const { user } = useAuth();
   const location = useLocation();
-  const hideFooterRoutes = ['/login', '/register'];
+  const hideFooterRoutes = ['/login', '/register', '/forgot-password', '/reset-password'];
   const showFooter = !hideFooterRoutes.includes(location.pathname);
 
   const showOnboarding = user && user.role === 'USER' && (!user.tags || user.tags.length === 0);
@@ -33,6 +35,8 @@ function App() {
           {/* Public Routes */}
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/events" element={<BrowseEventsPage />} />
           <Route path="/events/:id" element={<EventDetailsPage />} />

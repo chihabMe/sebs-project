@@ -5,6 +5,7 @@ import { createEvent, updateEvent, getManageEvent } from '../api/events';
 import { getAllTags } from '../api/tags';
 import Header from '../components/layout/Header';
 import TagPicker from '../components/ui/TagPicker';
+import { formatImageUrl } from '../utils/formatUrl';
 
 export default function EventFormPage() {
   const { id } = useParams();
@@ -23,6 +24,7 @@ export default function EventFormPage() {
     tags: [] as string[],
   });
   const [image, setImage] = useState<File | null>(null);
+  const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const draftKey = isEdit ? `organizer-event-draft:${id}` : 'organizer-event-draft:new';
@@ -54,6 +56,18 @@ export default function EventFormPage() {
       setHasUnsavedChanges(false);
     }
   }, [existingEvent]);
+
+  useEffect(() => {
+    if (!image) {
+      setImagePreviewUrl(existingEvent?.image ? formatImageUrl(existingEvent.image) : null);
+      return;
+    }
+
+    const nextPreviewUrl = URL.createObjectURL(image);
+    setImagePreviewUrl(nextPreviewUrl);
+
+    return () => URL.revokeObjectURL(nextPreviewUrl);
+  }, [existingEvent?.image, image]);
 
   useEffect(() => {
     if (isEdit) return;
@@ -223,6 +237,18 @@ export default function EventFormPage() {
                   setImage(e.target.files ? e.target.files[0] : null);
                 }}
               />
+              <p className="text-xs text-outline ml-1">
+                JPG, PNG, WebP, or GIF up to 5 MB.
+              </p>
+              {imagePreviewUrl && (
+                <div className="mt-3 overflow-hidden rounded-2xl border border-outline-variant/20 bg-surface-container-high">
+                  <img
+                    src={imagePreviewUrl}
+                    alt="Event preview"
+                    className="h-52 w-full object-cover"
+                  />
+                </div>
+              )}
             </div>
 
             <div className="space-y-2">
