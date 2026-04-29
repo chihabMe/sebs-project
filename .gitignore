@@ -19,4 +19,4 @@ apps/backend/uploads/*
 reports/scan-*.md
 reports/scan-*.json
 
-GEMINI.md
+# GEMINI.md should be tracked
