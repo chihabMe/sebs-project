@@ -4,20 +4,24 @@ import {
   IsBoolean,
   IsEmail,
   IsEnum,
+  Matches,
   IsOptional,
   IsString,
   MaxLength,
   MinLength,
 } from 'class-validator';
 
+const strongPasswordMessage = 'Password must be at least 12 characters and include uppercase, lowercase, number, symbol, and no spaces';
+const strongPasswordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9\s])\S{12,}$/;
+
 export class CreateUserByAdminDto {
   @ApiProperty({ example: 'user@example.com' })
   @IsEmail()
   email: string;
 
-  @ApiProperty({ example: 'password123', minLength: 8 })
+  @ApiProperty({ example: 'StrongPass123!', minLength: 12 })
   @IsString()
-  @MinLength(8)
+  @Matches(strongPasswordPattern, { message: strongPasswordMessage })
   password: string;
 
   @ApiProperty({ example: 'Jane Doe' })

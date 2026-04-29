@@ -16,7 +16,6 @@ export default function EditProfileForm({ onSuccess }: EditProfileFormProps) {
   
   const [name, setName] = useState(user?.name || '');
   const [bio, setBio] = useState(user?.bio || '');
-  const [password, setPassword] = useState('');
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -40,7 +39,6 @@ export default function EditProfileForm({ onSuccess }: EditProfileFormProps) {
     const formData = new FormData();
     formData.append('name', name);
     formData.append('bio', bio);
-    if (password) formData.append('password', password);
     if (avatarFile) formData.append('avatar', avatarFile);
 
     mutation.mutate(formData);
@@ -111,19 +109,6 @@ export default function EditProfileForm({ onSuccess }: EditProfileFormProps) {
           onChange={(e) => setBio(e.target.value)}
           className="w-full bg-surface-container-high border border-outline-variant/30 rounded-xl p-4 text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary min-h-[120px] resize-y transition-colors"
           placeholder="Tell us about yourself..."
-        />
-      </div>
-
-      <div>
-        <label className="block text-[10px] font-bold text-outline uppercase tracking-widest mb-3">
-          New Password (Leave blank to keep current)
-        </label>
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="Enter new password"
-          className="w-full bg-surface-container-high border border-outline-variant/30 rounded-xl p-4 text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
         />
       </div>
 

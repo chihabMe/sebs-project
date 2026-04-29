@@ -1,4 +1,4 @@
-import { BadRequestException } from '@nestjs/common';
+import { BadRequestException, UnauthorizedException } from '@nestjs/common';
 import { createHash } from 'crypto';
 import { AuthService } from './auth.service';
 
@@ -86,7 +86,7 @@ describe('AuthService password reset', () => {
       passwordResetExpiresAt: new Date(Date.now() - 1000),
     });
 
-    await expect(service.resetPassword({ token: 'expired', password: 'newPassword123' })).rejects.toBeInstanceOf(BadRequestException);
+    await expect(service.resetPassword({ token: 'expired', password: 'NewStrongPass123!' })).rejects.toBeInstanceOf(BadRequestException);
     expect(prisma.user.update).not.toHaveBeenCalled();
   });
 
@@ -101,7 +101,7 @@ describe('AuthService password reset', () => {
     });
     prisma.user.update.mockResolvedValue({});
 
-    await service.resetPassword({ token, password: 'newPassword123' });
+    await service.resetPassword({ token, password: 'NewStrongPass123!' });
 
     expect(prisma.user.findUnique).toHaveBeenCalledWith({ where: { passwordResetTokenHash: hashToken(token) } });
     expect(prisma.user.update).toHaveBeenCalledWith({
@@ -112,6 +112,66 @@ describe('AuthService password reset', () => {
         passwordResetExpiresAt: null,
         passwordResetRequestedAt: null,
       }),
+    });
+  });
+
+  it('changePassword rejects weak new passwords before updating', async () => {
+    await expect(
+      service.changePassword('u1', { currentPassword: 'CurrentStrongPass123!', newPassword: 'weak-password' }),
+    ).rejects.toBeInstanceOf(BadRequestException);
+
+    expect(prisma.user.findUnique).not.toHaveBeenCalled();
+    expect(prisma.user.update).not.toHaveBeenCalled();
+  });
+
+  it('changePassword rejects an invalid current password', async () => {
+    const bcrypt = await import('bcryptjs');
+    jest.spyOn(bcrypt, 'compare').mockResolvedValue(false as never);
+    prisma.user.findUnique.mockResolvedValue({
+      id: 'u1',
+      email: 'user@example.com',
+      password: 'hashed-current-password',
+      isBanned: false,
+    });
+
+    await expect(
+      service.changePassword('u1', { currentPassword: 'WrongStrongPass123!', newPassword: 'NewStrongPass123!' }),
+    ).rejects.toBeInstanceOf(UnauthorizedException);
+
+    expect(prisma.user.update).not.toHaveBeenCalled();
+  });
+
+  it('changePassword rejects reusing the current password', async () => {
+    await expect(
+      service.changePassword('u1', { currentPassword: 'SameStrongPass123!', newPassword: 'SameStrongPass123!' }),
+    ).rejects.toBeInstanceOf(BadRequestException);
+
+    expect(prisma.user.update).not.toHaveBeenCalled();
+  });
+
+  it('changePassword updates password and clears reset token fields', async () => {
+    const bcrypt = await import('bcryptjs');
+    jest.spyOn(bcrypt, 'compare').mockResolvedValue(true as never);
+    jest.spyOn(bcrypt, 'hash').mockResolvedValue('hashed-changed-password' as never);
+    prisma.user.findUnique.mockResolvedValue({
+      id: 'u1',
+      email: 'user@example.com',
+      password: 'hashed-current-password',
+      isBanned: false,
+    });
+    prisma.user.update.mockResolvedValue({});
+
+    await service.changePassword('u1', { currentPassword: 'CurrentStrongPass123!', newPassword: 'NewStrongPass123!' });
+
+    expect(prisma.user.findUnique).toHaveBeenCalledWith({ where: { id: 'u1' } });
+    expect(prisma.user.update).toHaveBeenCalledWith({
+      where: { id: 'u1' },
+      data: {
+        password: 'hashed-changed-password',
+        passwordResetTokenHash: null,
+        passwordResetExpiresAt: null,
+        passwordResetRequestedAt: null,
+      },
     });
   });
 });

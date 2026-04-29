@@ -1,5 +1,11 @@
 import { MailService } from './mail.service';
 
+jest.mock('./templates/password-reset.email', () => ({
+  renderPasswordResetEmail: jest.fn(({ resetUrl }) =>
+    Promise.resolve(`<div><h1>Reset your Eventify password</h1><a href="${resetUrl}">Reset password</a><p>Eventify</p></div>`),
+  ),
+}));
+
 describe('MailService', () => {
   it('sendEmail should not send when RESEND_API_KEY is missing', async () => {
     const configService = {

@@ -13,7 +13,7 @@ import {
 import { Throttle } from '@nestjs/throttler';
 import { Response, Request } from 'express';
 import { AuthService } from './auth.service';
-import { RegisterDto, LoginDto, ForgotPasswordDto, ResetPasswordDto } from './dto/auth.dto';
+import { RegisterDto, LoginDto, ForgotPasswordDto, ResetPasswordDto, ChangePasswordDto } from './dto/auth.dto';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { AuthGuard } from './guards/auth.guard';
 import { RolesGuard } from './guards/roles.guard';
@@ -112,6 +112,18 @@ export class AuthController {
       success: true,
       message: 'Password reset successfully. Please log in with your new password.',
     });
+  }
+
+  @Post('change-password')
+  @UseGuards(AuthGuard)
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
+  @ApiOperation({ summary: 'Change the current user password' })
+  async changePassword(@GetUser() user: { id: string; role: string }, @Body() dto: ChangePasswordDto) {
+    await this.authService.changePassword(user.id, dto);
+    return {
+      success: true,
+      message: 'Password changed successfully.',
+    };
   }
 
   @Post('admin/login')

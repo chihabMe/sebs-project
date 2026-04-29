@@ -3,7 +3,8 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import { createHash, randomBytes } from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
-import { RegisterDto, LoginDto, ForgotPasswordDto, ResetPasswordDto } from './dto/auth.dto';
+import { validateStrongPassword } from '@sebs/shared';
+import { RegisterDto, LoginDto, ForgotPasswordDto, ResetPasswordDto, ChangePasswordDto } from './dto/auth.dto';
 import { ConfigService } from '@nestjs/config';
 import { MailService } from '../mail/mail.service';
 
@@ -36,7 +37,15 @@ export class AuthService {
     throw new Error('FRONTEND_PUBLIC_URL or WEB_APP_URL must be configured in production');
   }
 
+  private assertStrongPassword(password: string) {
+    const failures = validateStrongPassword(password);
+    if (failures.length > 0) {
+      throw new BadRequestException(`Password is too weak: ${failures.join(', ')}`);
+    }
+  }
+
   async register(dto: RegisterDto) {
+    this.assertStrongPassword(dto.password);
     const email = dto.email.toLowerCase().trim();
     const existingUser = await this.prisma.user.findUnique({ where: { email } });
     if (existingUser) {
@@ -117,6 +126,7 @@ export class AuthService {
   }
 
   async resetPassword(dto: ResetPasswordDto) {
+    this.assertStrongPassword(dto.password);
     const tokenHash = this.hashResetToken(dto.token);
     const user = await this.prisma.user.findUnique({ where: { passwordResetTokenHash: tokenHash } });
 
@@ -137,6 +147,38 @@ export class AuthService {
     });
 
     this.logger.log(`password_reset_succeeded userId=${user.id} email=${user.email}`);
+  }
+
+  async changePassword(userId: string, dto: ChangePasswordDto) {
+    this.assertStrongPassword(dto.newPassword);
+
+    if (dto.currentPassword === dto.newPassword) {
+      throw new BadRequestException('New password must be different from the current password');
+    }
+
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user || user.isBanned) {
+      throw new UnauthorizedException('Session is no longer valid');
+    }
+
+    const isCurrentPasswordValid = await bcrypt.compare(dto.currentPassword, user.password);
+    if (!isCurrentPasswordValid) {
+      this.logger.warn(`password_change_failed reason=invalid_current_password userId=${user.id}`);
+      throw new UnauthorizedException('Current password is incorrect');
+    }
+
+    const hashedPassword = await bcrypt.hash(dto.newPassword, 12);
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        password: hashedPassword,
+        passwordResetTokenHash: null,
+        passwordResetExpiresAt: null,
+        passwordResetRequestedAt: null,
+      },
+    });
+
+    this.logger.log(`password_change_succeeded userId=${user.id} email=${user.email}`);
   }
 
   async refresh(refreshToken: string) {

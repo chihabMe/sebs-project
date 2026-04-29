@@ -1,6 +1,7 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Resend } from 'resend';
+import { renderPasswordResetEmail } from './templates/password-reset.email';
 
 @Injectable()
 export class MailService {
@@ -91,20 +92,7 @@ export class MailService {
   async sendPasswordResetEmail(user: any, resetUrl: string) {
     const subject = 'Reset your Eventify password';
     const text = `Hi ${user.name},\n\nWe received a request to reset your Eventify password.\n\nOpen this link to set a new password: ${resetUrl}\n\nThis link expires in 30 minutes. If you did not request this, you can ignore this email.`;
-
-    const html = `
-      <div style="font-family: sans-serif; color: #172426; max-width: 600px; margin: 0 auto; border: 1px solid #0d5c6315; padding: 40px; border-radius: 20px;">
-        <h1 style="color: #0d5c63; font-size: 24px; font-weight: 900; letter-spacing: -0.02em;">Reset your Eventify password</h1>
-        <p style="font-size: 16px; line-height: 1.6;">Hi <strong>${user.name}</strong>,</p>
-        <p style="font-size: 16px; line-height: 1.6;">We received a request to reset your password. Use the button below to choose a new one.</p>
-        <p style="margin: 28px 0;">
-          <a href="${resetUrl}" style="display: inline-block; background: #0d5c63; color: #ffffff; padding: 14px 22px; border-radius: 12px; text-decoration: none; font-weight: 800;">Reset password</a>
-        </p>
-        <p style="font-size: 14px; color: #5f6f72;">This link expires in 30 minutes. If you did not request this, you can ignore this email.</p>
-        <hr style="border: 0; border-top: 1px solid #0d5c6315; margin: 32px 0;">
-        <p style="font-size: 12px; color: #5f6f72; text-align: center;">Eventify</p>
-      </div>
-    `;
+    const html = await renderPasswordResetEmail({ name: user.name, resetUrl });
 
     return this.sendEmail(user.email, subject, text, html);
   }

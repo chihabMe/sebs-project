@@ -19,12 +19,6 @@ export class UpdateProfileDto {
   @MaxLength(500)
   bio?: string;
 
-  @ApiProperty({ required: false })
-  @IsOptional()
-  @IsString()
-  @MinLength(6)
-  password?: string;
-
   @ApiProperty({ type: [String], required: false })
   @IsOptional()
   @IsArray()

@@ -65,6 +65,28 @@ describe('UsersService', () => {
     );
   });
 
+  it('updateProfile should not accept password updates', async () => {
+    prisma.user.update.mockResolvedValue({
+      id: 'u1',
+      email: 'user@example.com',
+      name: 'Updated',
+      role: 'USER',
+      avatar: null,
+      bio: 'Bio',
+      tags: [],
+    });
+
+    await service.updateProfile('u1', { name: 'Updated', password: 'IgnoredStrongPass123!' } as any);
+
+    expect(prisma.user.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.not.objectContaining({
+          password: expect.anything(),
+        }),
+      }),
+    );
+  });
+
   it('getAttendanceHistory should compute attended flag correctly', async () => {
     prisma.booking.findMany.mockResolvedValue([
       {

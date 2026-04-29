@@ -23,6 +23,32 @@ const booleanLikeSchema = z.preprocess((value) => {
   return value;
 }, z.boolean());
 
+export const passwordRules = [
+  'At least 12 characters',
+  'At least one uppercase letter',
+  'At least one lowercase letter',
+  'At least one number',
+  'At least one symbol',
+  'No spaces',
+];
+
+export const validateStrongPassword = (password: string) => {
+  const failures: string[] = [];
+  if (password.length < 12) failures.push(passwordRules[0]);
+  if (!/[A-Z]/.test(password)) failures.push(passwordRules[1]);
+  if (!/[a-z]/.test(password)) failures.push(passwordRules[2]);
+  if (!/[0-9]/.test(password)) failures.push(passwordRules[3]);
+  if (!/[^A-Za-z0-9\s]/.test(password)) failures.push(passwordRules[4]);
+  if (/\s/.test(password)) failures.push(passwordRules[5]);
+  return failures;
+};
+
+export const strongPasswordSchema = z.string().superRefine((password, ctx) => {
+  for (const failure of validateStrongPassword(password)) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, message: failure });
+  }
+});
+
 // ==========================================
 // SCHEMAS (Validation for Requests)
 // ==========================================
@@ -30,7 +56,7 @@ const booleanLikeSchema = z.preprocess((value) => {
 // AUTH
 export const registerSchema = z.object({
   email: z.string().email(),
-  password: z.string().min(8),
+  password: strongPasswordSchema,
   name: z.string().min(2),
   role: roleSchema.extract(['USER', 'ORGANIZER']).optional(),
 });
@@ -48,7 +74,12 @@ export const forgotPasswordSchema = z.object({
 
 export const resetPasswordSchema = z.object({
   token: z.string().min(1),
-  password: z.string().min(8),
+  password: strongPasswordSchema,
+});
+
+export const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1),
+  newPassword: strongPasswordSchema,
 });
 
 // TAG
@@ -107,13 +138,12 @@ export const updateProfileSchema = z.object({
   name: z.string().min(2).optional(),
   avatar: z.string().url().optional().or(z.literal('')),
   bio: z.string().max(500).optional(),
-  password: z.string().min(6).optional(),
   tags: z.array(z.string()).optional(), // Array of Tag IDs
 });
 
 export const createAdminUserSchema = z.object({
   email: z.string().email(),
-  password: z.string().min(8),
+  password: strongPasswordSchema,
   name: z.string().min(2).max(100),
   role: roleSchema.optional().default('USER'),
 });
@@ -132,6 +162,7 @@ export type LoginInput = z.infer<typeof loginSchema>;
 export type AdminLoginInput = z.infer<typeof adminLoginSchema>;
 export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
 export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
+export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
 export type TagCreateInput = z.infer<typeof tagCreateSchema>;
 export type EventCreateInput = z.infer<typeof eventCreateSchema>;
 export type BookingCreateInput = z.infer<typeof bookingCreateSchema>;

@@ -7,6 +7,7 @@ describe('AuthController', () => {
     refresh: jest.fn(),
     forgotPassword: jest.fn(),
     resetPassword: jest.fn(),
+    changePassword: jest.fn(),
     getAuthenticatedUser: jest.fn(),
   } as any;
 
@@ -34,7 +35,7 @@ describe('AuthController', () => {
     });
     const res = createRes();
 
-    await controller.register({ email: 'user@example.com', password: 'password123', name: 'User' }, res);
+    await controller.register({ email: 'user@example.com', password: 'StrongPass123!', name: 'User' }, res);
 
     expect(res.cookie).toHaveBeenCalledTimes(2);
     expect(res.cookie.mock.calls[0][0]).toBe('accessToken');
@@ -78,15 +79,34 @@ describe('AuthController', () => {
     authService.resetPassword.mockResolvedValue(undefined);
     const res = createRes();
 
-    await controller.resetPassword({ token: 'reset-token', password: 'newPassword123' }, res);
+    await controller.resetPassword({ token: 'reset-token', password: 'NewStrongPass123!' }, res);
 
-    expect(authService.resetPassword).toHaveBeenCalledWith({ token: 'reset-token', password: 'newPassword123' });
+    expect(authService.resetPassword).toHaveBeenCalledWith({ token: 'reset-token', password: 'NewStrongPass123!' });
     expect(res.clearCookie).toHaveBeenCalledWith('accessToken', expect.objectContaining({ httpOnly: true }));
     expect(res.clearCookie).toHaveBeenCalledWith('refreshToken', expect.objectContaining({ httpOnly: true }));
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith({
       success: true,
       message: 'Password reset successfully. Please log in with your new password.',
+    });
+  });
+
+  it('changePassword should call service with authenticated user id', async () => {
+    authService.changePassword.mockResolvedValue(undefined);
+
+    await expect(
+      controller.changePassword(
+        { id: 'u1', role: 'USER' },
+        { currentPassword: 'CurrentStrongPass123!', newPassword: 'NewStrongPass123!' },
+      ),
+    ).resolves.toEqual({
+      success: true,
+      message: 'Password changed successfully.',
+    });
+
+    expect(authService.changePassword).toHaveBeenCalledWith('u1', {
+      currentPassword: 'CurrentStrongPass123!',
+      newPassword: 'NewStrongPass123!',
     });
   });
 

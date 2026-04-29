@@ -17,6 +17,8 @@ import {
 } from 'lucide-react';
 import type { AdminUserListItem, CreateAdminUserInput, Role } from '@sebs/shared';
 import { approveEvent, createAdminUser, getAdminStats, getAdminUsers, getPendingEvents, rejectEvent, updateAdminUser } from '../api/admin';
+import { changePassword } from '../api/auth';
+import { passwordRules, validateStrongPassword } from '../utils/passwordPolicy';
 import { createTag, deleteTag, getTags } from '../api/tags';
 import { useAdminSession } from '../hooks/useAdminSession';
 import { Button } from '../components/ui/button';
@@ -75,6 +77,11 @@ export function DashboardPage() {
     password: '',
     role: 'USER',
   });
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  });
 
   const statsQuery = useQuery({ queryKey: ['admin-stats'], queryFn: getAdminStats });
   const usersQuery = useQuery({
@@ -112,6 +119,17 @@ export function DashboardPage() {
     },
     onError: (error) => {
       setNotice({ kind: 'error', message: getErrorMessage(error, 'Failed to create the user.') });
+    },
+  });
+
+  const changePasswordMutation = useMutation({
+    mutationFn: changePassword,
+    onSuccess: () => {
+      setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+      setNotice({ kind: 'success', message: 'Password changed successfully.' });
+    },
+    onError: (error) => {
+      setNotice({ kind: 'error', message: getErrorMessage(error, 'Failed to change password.') });
     },
   });
 
@@ -176,6 +194,8 @@ export function DashboardPage() {
   const pendingEvents = pendingEventsQuery.data ?? [];
   const tags = tagsQuery.data ?? [];
   const recentlyCreatedUsers = useMemo(() => users.slice(0, 5), [users]);
+  const newPasswordFailures = validateStrongPassword(passwordForm.newPassword);
+  const createUserPasswordFailures = validateStrongPassword(form.password);
 
   return (
     <div className="min-h-screen bg-surface-strong/40">
@@ -215,7 +235,7 @@ export function DashboardPage() {
           </div>
 
           <nav className="mt-4 space-y-1 text-sm">
-            {['Overview', 'Pending events', 'Users', 'Tags'].map((item) => (
+            {['Overview', 'Pending events', 'Users', 'Tags', 'Security'].map((item) => (
               <a key={item} href={`#${item.toLowerCase().replace(' ', '-')}`} className="block rounded-md px-3 py-2 text-muted hover:bg-surface-strong hover:text-foreground">
                 {item}
               </a>
@@ -410,6 +430,11 @@ export function DashboardPage() {
                   className="space-y-4 p-6"
                   onSubmit={async (event) => {
                     event.preventDefault();
+                    const passwordFailures = validateStrongPassword(form.password);
+                    if (passwordFailures.length > 0) {
+                      setNotice({ kind: 'error', message: `Password is too weak: ${passwordFailures.join(', ')}` });
+                      return;
+                    }
                     await createUserMutation.mutateAsync(form);
                   }}
                 >
@@ -436,6 +461,13 @@ export function DashboardPage() {
                     onChange={(event) => setForm((current) => ({ ...current, password: event.target.value }))}
                     required
                   />
+                  <div className="grid gap-1 rounded-md bg-surface-strong p-3 text-xs text-muted">
+                    {passwordRules.map((rule) => (
+                      <span key={rule} className={createUserPasswordFailures.includes(rule) ? '' : 'font-medium text-foreground'}>
+                        {createUserPasswordFailures.includes(rule) ? '-' : '[x]'} {rule}
+                      </span>
+                    ))}
+                  </div>
                   <select className={inputClass} value={form.role} onChange={(event) => setForm((current) => ({ ...current, role: event.target.value as Role }))}>
                     <option value="USER">User</option>
                     <option value="ORGANIZER">Organizer</option>
@@ -479,6 +511,69 @@ export function DashboardPage() {
                     ))}
                   </div>
                 </div>
+              </div>
+
+              <div id="security" className={cardClass}>
+                <div className="border-b border-border p-6">
+                  <SectionHeader title="Security" description="Change your admin password." />
+                </div>
+                <form
+                  className="space-y-4 p-6"
+                  onSubmit={async (event) => {
+                    event.preventDefault();
+                    if (passwordForm.currentPassword === passwordForm.newPassword) {
+                      setNotice({ kind: 'error', message: 'New password must be different from the current password.' });
+                      return;
+                    }
+                    if (newPasswordFailures.length > 0) {
+                      setNotice({ kind: 'error', message: `Password is too weak: ${newPasswordFailures.join(', ')}` });
+                      return;
+                    }
+                    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+                      setNotice({ kind: 'error', message: 'Password confirmation does not match.' });
+                      return;
+                    }
+                    await changePasswordMutation.mutateAsync({
+                      currentPassword: passwordForm.currentPassword,
+                      newPassword: passwordForm.newPassword,
+                    });
+                  }}
+                >
+                  <input
+                    className={inputClass}
+                    placeholder="Current password"
+                    type="password"
+                    value={passwordForm.currentPassword}
+                    onChange={(event) => setPasswordForm((current) => ({ ...current, currentPassword: event.target.value }))}
+                    required
+                  />
+                  <input
+                    className={inputClass}
+                    placeholder="New password"
+                    type="password"
+                    value={passwordForm.newPassword}
+                    onChange={(event) => setPasswordForm((current) => ({ ...current, newPassword: event.target.value }))}
+                    required
+                  />
+                  <input
+                    className={inputClass}
+                    placeholder="Confirm new password"
+                    type="password"
+                    value={passwordForm.confirmPassword}
+                    onChange={(event) => setPasswordForm((current) => ({ ...current, confirmPassword: event.target.value }))}
+                    required
+                  />
+                  <div className="grid gap-1 rounded-md bg-surface-strong p-3 text-xs text-muted">
+                    {passwordRules.map((rule) => (
+                      <span key={rule} className={newPasswordFailures.includes(rule) ? '' : 'font-medium text-foreground'}>
+                        {newPasswordFailures.includes(rule) ? '-' : '[x]'} {rule}
+                      </span>
+                    ))}
+                  </div>
+                  <Button type="submit" className="w-full" disabled={changePasswordMutation.isPending}>
+                    {changePasswordMutation.isPending ? 'Changing...' : 'Change password'}
+                  </Button>
+                </form>
               </div>
 
               <div className={cardClass}>

@@ -41,7 +41,7 @@ describe('AdminService', () => {
 
     const created = await service.createUser({
       email: ' Test@Example.com ',
-      password: 'password123',
+      password: 'StrongPass123!',
       name: ' Jane Doe ',
       role: undefined,
     });
@@ -50,8 +50,22 @@ describe('AdminService', () => {
     expect(created.name).toBe('Jane Doe');
     expect(created.role).toBe('USER');
     const createCall = prisma.user.create.mock.calls[0][0];
-    expect(createCall.data.password).not.toBe('password123');
-    expect(await bcrypt.compare('password123', createCall.data.password)).toBe(true);
+    expect(createCall.data.password).not.toBe('StrongPass123!');
+    expect(await bcrypt.compare('StrongPass123!', createCall.data.password)).toBe(true);
+  });
+
+  it('createUser should reject weak passwords', async () => {
+    await expect(
+      service.createUser({
+        email: 'weak@example.com',
+        password: 'password123',
+        name: 'Jane',
+        role: 'USER',
+      }),
+    ).rejects.toBeInstanceOf(BadRequestException);
+
+    expect(prisma.user.findUnique).not.toHaveBeenCalled();
+    expect(prisma.user.create).not.toHaveBeenCalled();
   });
 
   it('createUser should reject duplicate email', async () => {
@@ -60,7 +74,7 @@ describe('AdminService', () => {
     await expect(
       service.createUser({
         email: 'user@example.com',
-        password: 'password123',
+        password: 'StrongPass123!',
         name: 'Jane',
         role: 'USER',
       }),

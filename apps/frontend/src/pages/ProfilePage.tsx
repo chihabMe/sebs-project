@@ -3,6 +3,7 @@ import Header from '../components/layout/Header';
 import { useAuth } from '../hooks/useAuth';
 import AttendanceHeatmap from '../components/profile/AttendanceHeatmap';
 import EditProfileForm from '../components/profile/EditProfileForm';
+import ChangePasswordForm from '../components/profile/ChangePasswordForm';
 
 export default function ProfilePage() {
   const { user } = useAuth();
@@ -11,7 +12,7 @@ export default function ProfilePage() {
   return (
     <div className="bg-surface text-on-surface min-h-screen flex flex-col">
       <Header />
-      <main className="pt-32 px-6 max-w-3xl mx-auto w-full pb-20">
+      <main className="pt-32 px-6 max-w-4xl mx-auto w-full pb-20">
         <div className="bg-surface-container-low rounded-3xl p-8 md:p-12 shadow-xl border border-outline-variant/20">
           <header className="flex flex-col md:flex-row items-center gap-8 mb-12">
             <div className="w-32 h-32 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden border-4 border-surface shadow-lg">
@@ -57,6 +58,9 @@ export default function ProfilePage() {
               </div>
             )}
           </section>
+        </div>
+        <div className="mt-8">
+          <ChangePasswordForm />
         </div>
       </main>
     </div>

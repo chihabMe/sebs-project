@@ -5,6 +5,7 @@ import { Lock } from 'lucide-react';
 import { resetPassword } from '../api/auth';
 import { Button } from '../components/ui/button';
 import { useToast } from '../components/ui/toast-provider';
+import { passwordRules, validateStrongPassword } from '../utils/passwordPolicy';
 
 export default function ResetPasswordPage() {
   const [searchParams] = useSearchParams();
@@ -36,8 +37,9 @@ export default function ResetPasswordPage() {
       setError('Passwords do not match.');
       return;
     }
-    if (password.length < 8) {
-      setError('Password must be at least 8 characters.');
+    const passwordFailures = validateStrongPassword(password);
+    if (passwordFailures.length > 0) {
+      setError(`Password is too weak: ${passwordFailures.join(', ')}`);
       return;
     }
 
@@ -57,7 +59,7 @@ export default function ResetPasswordPage() {
         <div className="w-full max-w-md bg-surface-container-low rounded-xl p-8 md:p-10 shadow-[0_20px_40px_rgba(50,41,79,0.06)]">
           <header className="mb-8">
             <h2 className="text-3xl font-extrabold font-headline text-on-surface tracking-tight mb-2">Choose new password</h2>
-            <p className="text-on-surface-variant text-sm font-medium">Use at least 8 characters.</p>
+            <p className="text-on-surface-variant text-sm font-medium">Use a strong password that meets all rules below.</p>
           </header>
 
           {error && (
@@ -81,6 +83,17 @@ export default function ResetPasswordPage() {
               onChange={setConfirmPassword}
               placeholder="Confirm password"
             />
+
+            <div className="grid gap-2 rounded-2xl bg-surface-container-high/60 p-4 text-xs text-on-surface-variant sm:grid-cols-2">
+              {passwordRules.map((rule) => {
+                const missing = validateStrongPassword(password).includes(rule);
+                return (
+                  <span key={rule} className={missing ? '' : 'font-bold text-primary'}>
+                    {missing ? '-' : '[x]'} {rule}
+                  </span>
+                );
+              })}
+            </div>
 
             <Button type="submit" disabled={mutation.isPending || !token} className="w-full">
               {mutation.isPending ? 'Resetting...' : 'Reset password'}

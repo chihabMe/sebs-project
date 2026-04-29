@@ -1,4 +1,4 @@
-import type { AdminLoginInput, AdminSessionResponse, ApiResponse, AuthResponse, UserDto } from '@sebs/shared';
+import type { AdminLoginInput, AdminSessionResponse, ApiResponse, AuthResponse, ChangePasswordInput, UserDto } from '@sebs/shared';
 import { api } from './client';
 
 export async function loginAdmin(payload: AdminLoginInput) {
@@ -18,5 +18,10 @@ export async function getSession() {
 
 export async function logoutAdmin() {
   const response = await api.post<ApiResponse>('/auth/logout');
+  return response.data;
+}
+
+export async function changePassword(payload: ChangePasswordInput) {
+  const response = await api.post<ApiResponse>('/auth/change-password', payload);
   return response.data;
 }

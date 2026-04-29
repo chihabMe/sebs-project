@@ -4,6 +4,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../api/client';
 import { RegisterInput, ApiResponse, AuthResponse } from '@sebs/shared';
 import { handleApiError } from '../utils/errorHandler';
+import { passwordRules, validateStrongPassword } from '../utils/passwordPolicy';
 
 export default function RegisterPage() {
   const navigate = useNavigate();
@@ -44,6 +45,11 @@ export default function RegisterPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    const passwordFailures = validateStrongPassword(formData.password);
+    if (passwordFailures.length > 0) {
+      setError(`Password is too weak: ${passwordFailures.join(', ')}`);
+      return;
+    }
     registerMutation.mutate({
       ...formData,
       role,
@@ -170,10 +176,19 @@ export default function RegisterPage() {
                       placeholder="••••••••" 
                       type="password"
                       required
-                      minLength={8}
                       value={formData.password}
                       onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                     />
+                  </div>
+                  <div className="mt-3 grid gap-1 rounded-xl bg-surface-container-high/60 p-3 text-xs text-on-surface-variant sm:grid-cols-2">
+                    {passwordRules.map((rule) => {
+                      const missing = validateStrongPassword(formData.password).includes(rule);
+                      return (
+                        <span key={rule} className={missing ? '' : 'font-bold text-primary'}>
+                          {missing ? '-' : '[x]'} {rule}
+                        </span>
+                      );
+                    })}
                   </div>
                 </div>
               </div>

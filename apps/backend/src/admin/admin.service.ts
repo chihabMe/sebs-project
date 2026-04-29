@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { type Role } from '@sebs/shared';
+import { type Role, validateStrongPassword } from '@sebs/shared';
 import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcryptjs';
 import { CreateUserByAdminDto, UpdateUserByAdminDto } from './dto/admin.dto';
@@ -26,6 +26,11 @@ export class AdminService {
   }
 
   async createUser(dto: CreateUserByAdminDto, actorId?: string) {
+    const passwordFailures = validateStrongPassword(dto.password);
+    if (passwordFailures.length > 0) {
+      throw new BadRequestException(`Password is too weak: ${passwordFailures.join(', ')}`);
+    }
+
     const existingUser = await this.prisma.user.findUnique({ where: { email: dto.email } });
     if (existingUser) {
       throw new BadRequestException('Email already in use');

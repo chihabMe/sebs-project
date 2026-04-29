@@ -1,5 +1,6 @@
 import { api } from './client';
 import { ApiResponse, UserDto } from '@sebs/shared';
+import type { ChangePasswordInput } from '@sebs/shared';
 import { handleApiError } from '../utils/errorHandler';
 
 export const getProfile = async () => {
@@ -74,6 +75,16 @@ export const forgotPassword = async (data: ForgotPasswordPayload) => {
 export const resetPassword = async (data: ResetPasswordPayload) => {
   try {
     const response = await api.post<ApiResponse>('/auth/reset-password', data);
+    return response.data;
+  } catch (error) {
+    const apiError = handleApiError(error);
+    throw new Error(apiError.message);
+  }
+};
+
+export const changePassword = async (data: ChangePasswordInput) => {
+  try {
+    const response = await api.post<ApiResponse>('/auth/change-password', data);
     return response.data;
   } catch (error) {
     const apiError = handleApiError(error);
