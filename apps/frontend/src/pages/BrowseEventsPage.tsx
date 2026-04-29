@@ -32,11 +32,13 @@ export default function BrowseEventsPage() {
   );
 
   // Active filters for the query (only updated on "Search" click or category change)
-  const [activeFilters, setActiveFilters] = useState({
-    search: searchParams.get('search') || '',
-    category: searchParams.get('category') || 'All Events',
-    tag: searchParams.get('tag') || '',
-    date: searchParams.get('date') || '',
+  const [activeFilters, setActiveFilters] = useState(() => {
+    const initial: Record<string, string> = {};
+    if (searchParams.get('search')) initial.search = searchParams.get('search')!;
+    if (searchParams.get('category') && searchParams.get('category') !== 'All Events') initial.category = searchParams.get('category')!;
+    if (searchParams.get('tag') && searchParams.get('tag') !== 'All Tags') initial.tag = searchParams.get('tag')!;
+    if (searchParams.get('date')) initial.date = searchParams.get('date')!;
+    return initial;
   });
 
   const { data: events, isLoading } = useQuery({
@@ -52,21 +54,16 @@ export default function BrowseEventsPage() {
   const categories = ['All Events', 'Music', 'Tech', 'Art', 'Food', 'Social'];
 
   const handleSearch = () => {
-    const filters = {
-      search: searchInput,
-      category,
-      tag: tag === 'All Tags' ? '' : tag,
-      date: date ? format(date, 'yyyy-MM-dd') : '',
-    };
+    const filters: Record<string, string> = {};
+    if (searchInput) filters.search = searchInput;
+    if (category && category !== 'All Events') filters.category = category;
+    if (tag && tag !== 'All Tags') filters.tag = tag;
+    if (date) filters.date = format(date, 'yyyy-MM-dd');
+    
     setActiveFilters(filters);
     
     // Update URL params
-    const params: Record<string, string> = {};
-    if (filters.search) params.search = filters.search;
-    if (filters.category !== 'All Events') params.category = filters.category;
-    if (filters.tag) params.tag = filters.tag;
-    if (filters.date) params.date = filters.date;
-    setSearchParams(params);
+    setSearchParams(filters);
   };
 
   const handleReset = () => {
@@ -74,8 +71,7 @@ export default function BrowseEventsPage() {
     setCategory('All Events');
     setTag('All Tags');
     setDate(undefined);
-    const resetFilters = { search: '', category: 'All Events', tag: '', date: '' };
-    setActiveFilters(resetFilters);
+    setActiveFilters({});
     setSearchParams({});
   };
 
@@ -209,9 +205,6 @@ export default function BrowseEventsPage() {
                     src={formatImageUrl(event.image)} 
                     alt={event.title}
                   />
-                  <div className="absolute top-4 right-4 bg-surface/90 backdrop-blur-md shadow-lg px-4 py-1.5 rounded-full border border-primary/10">
-                    <span className="text-primary font-black text-sm">${event.price}</span>
-                  </div>
                   {event.isApproved === false && (
                     <div className="absolute top-4 left-4 bg-error text-white text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-widest">
                       Pending Approval
@@ -244,7 +237,7 @@ export default function BrowseEventsPage() {
                        <span className="text-[10px] font-bold text-outline uppercase tracking-widest">{event.category}</span>
                     </div>
                     <Link to={`/events/${event.id}`} className="inline-flex items-center justify-center h-10 px-5 rounded-xl bg-primary/5 text-primary text-xs font-bold hover:bg-primary hover:text-on-primary transition-all group/btn">
-                      Get Tickets <Search className="ml-2 h-3 w-3 group-hover/btn:translate-x-0.5 transition-transform" />
+                      View Event <Search className="ml-2 h-3 w-3 group-hover/btn:translate-x-0.5 transition-transform" />
                     </Link>
                   </div>
                 </div>

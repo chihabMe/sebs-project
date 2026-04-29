@@ -1,6 +1,7 @@
-import { Controller, Get, Post, Body, Param, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, UseGuards, ParseUUIDPipe, Query } from '@nestjs/common';
 import { ReviewsService } from './reviews.service';
 import { CreateReviewDto } from './dto/review.dto';
+import { ReviewsQueryDto } from './dto/reviews-query.dto';
 import { AuthGuard } from '../auth/guards/auth.guard';
 import { GetUser } from '../auth/decorators/get-user.decorator';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
@@ -20,8 +21,11 @@ export class ReviewsController {
 
   @Get('event/:eventId')
   @ApiOperation({ summary: 'Get reviews for an event' })
-  async findByEvent(@Param('eventId') eventId: string) {
-    const data = await this.reviewsService.findByEvent(eventId);
+  async findByEvent(
+    @Param('eventId', new ParseUUIDPipe()) eventId: string,
+    @Query() query: ReviewsQueryDto,
+  ) {
+    const data = await this.reviewsService.findByEvent(eventId, query);
     return { success: true, data };
   }
 
@@ -29,7 +33,7 @@ export class ReviewsController {
   @UseGuards(AuthGuard)
   @ApiOperation({ summary: 'Delete a review' })
   async remove(
-    @Param('id') id: string,
+    @Param('id', new ParseUUIDPipe()) id: string,
     @GetUser('id') userId: string,
     @GetUser('role') userRole: string
   ) {

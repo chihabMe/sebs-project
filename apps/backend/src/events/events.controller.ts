@@ -1,6 +1,6 @@
 import { 
-  Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, 
-  Query, UseInterceptors, UploadedFile, Req 
+  BadRequestException, Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, 
+  Query, UseInterceptors, UploadedFile, ParseUUIDPipe
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { EventsService } from './events.service';
@@ -12,6 +12,32 @@ import { GetUser } from '../auth/decorators/get-user.decorator';
 import { ApiTags, ApiOperation, ApiConsumes } from '@nestjs/swagger';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
+import { UpdateEventStatusDto } from './dto/update-event-status.dto';
+import { EventsQueryDto } from './dto/events-query.dto';
+
+const imageUploadOptions = {
+  storage: diskStorage({
+    destination: './uploads',
+    filename: (req, file, cb) => {
+      const randomName = Array(32).fill(null).map(() => (Math.round(Math.random() * 16)).toString(16)).join('');
+      return cb(null, `${Date.now()}-${randomName}${extname(file.originalname)}`);
+    }
+  }),
+  limits: {
+    fileSize: 5 * 1024 * 1024,
+  },
+  fileFilter: (req: Express.Request, file: Express.Multer.File, cb: (error: Error | null, acceptFile: boolean) => void) => {
+    const allowedMimeTypes = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
+    const allowedExtensions = new Set(['.jpg', '.jpeg', '.png', '.webp', '.gif']);
+
+    if (allowedMimeTypes.has(file.mimetype) && allowedExtensions.has(extname(file.originalname).toLowerCase())) {
+      cb(null, true);
+      return;
+    }
+
+    cb(new BadRequestException('Only JPG, PNG, WebP, or GIF images up to 5 MB are allowed'), false);
+  },
+};
 
 @ApiTags('Events')
 @Controller('events')
@@ -21,15 +47,7 @@ export class EventsController {
   @Post()
   @UseGuards(AuthGuard, RolesGuard)
   @Roles('ORGANIZER', 'ADMIN')
-  @UseInterceptors(FileInterceptor('image', {
-    storage: diskStorage({
-      destination: './uploads',
-      filename: (req, file, cb) => {
-        const randomName = Array(32).fill(null).map(() => (Math.round(Math.random() * 16)).toString(16)).join('');
-        return cb(null, `${Date.now()}-${randomName}${extname(file.originalname)}`);
-      }
-    })
-  }))
+  @UseInterceptors(FileInterceptor('image', imageUploadOptions))
   @ApiConsumes('multipart/form-data')
   @ApiOperation({ summary: 'Create a new event' })
   async create(
@@ -45,7 +63,7 @@ export class EventsController {
 
   @Get()
   @ApiOperation({ summary: 'Get list of events (Public)' })
-  async findAll(@Query() query: any) {
+  async findAll(@Query() query: EventsQueryDto) {
     const events = await this.eventsService.findAll(query);
     return { success: true, data: events };
   }
@@ -67,9 +85,22 @@ export class EventsController {
     return { success: true, data: events };
   }
 
+  @Get(':id/manage')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles('ORGANIZER', 'ADMIN')
+  @ApiOperation({ summary: 'Get event details for organizer/admin management' })
+  async findOneForManager(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @GetUser('id') userId: string,
+    @GetUser('role') userRole: string
+  ) {
+    const event = await this.eventsService.findOneForManager(id, userId, userRole);
+    return { success: true, data: event };
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Get event details' })
-  async findOne(@Param('id') id: string) {
+  async findOne(@Param('id', new ParseUUIDPipe()) id: string) {
     const event = await this.eventsService.findOne(id);
     return { success: true, data: event };
   }
@@ -77,19 +108,11 @@ export class EventsController {
   @Patch(':id')
   @UseGuards(AuthGuard, RolesGuard)
   @Roles('ORGANIZER', 'ADMIN')
-  @UseInterceptors(FileInterceptor('image', {
-    storage: diskStorage({
-      destination: './uploads',
-      filename: (req, file, cb) => {
-        const randomName = Array(32).fill(null).map(() => (Math.round(Math.random() * 16)).toString(16)).join('');
-        return cb(null, `${Date.now()}-${randomName}${extname(file.originalname)}`);
-      }
-    })
-  }))
+  @UseInterceptors(FileInterceptor('image', imageUploadOptions))
   @ApiConsumes('multipart/form-data')
   @ApiOperation({ summary: 'Update an event' })
   async update(
-    @Param('id') id: string,
+    @Param('id', new ParseUUIDPipe()) id: string,
     @GetUser('id') userId: string,
     @GetUser('role') userRole: string,
     @Body() updateEventDto: UpdateEventDto,
@@ -105,7 +128,7 @@ export class EventsController {
   @Roles('ORGANIZER', 'ADMIN')
   @ApiOperation({ summary: 'Delete an event' })
   async remove(
-    @Param('id') id: string,
+    @Param('id', new ParseUUIDPipe()) id: string,
     @GetUser('id') userId: string,
     @GetUser('role') userRole: string
   ) {
@@ -118,12 +141,13 @@ export class EventsController {
   @Roles('ORGANIZER', 'ADMIN')
   @ApiOperation({ summary: 'Update event status' })
   async updateStatus(
-    @Param('id') id: string,
-    @Body('status') status: string,
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() dto: UpdateEventStatusDto,
     @GetUser('id') userId: string,
     @GetUser('role') userRole: string
   ) {
-    const event = await this.eventsService.updateStatus(id, status, userId, userRole);
+    const event = await this.eventsService.updateStatus(id, dto.status, userId, userRole);
     return { success: true, message: 'Event status updated', data: event };
   }
+
 }

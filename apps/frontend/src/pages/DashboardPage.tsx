@@ -4,9 +4,11 @@ import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { getMyBookings, downloadTicket } from '../api/bookings';
 import { formatImageUrl } from '../utils/formatUrl';
+import { useToast } from '../components/ui/toast-provider';
 
 export default function DashboardPage() {
   const { user } = useAuth();
+  const { showToast } = useToast();
 
   const { data: bookings, isLoading } = useQuery({
     queryKey: ['my-bookings'],
@@ -66,7 +68,14 @@ export default function DashboardPage() {
                       {booking.status === 'CONFIRMED' && (
                         <div className="mt-6 flex flex-wrap gap-3">
                           <button 
-                            onClick={() => downloadTicket(booking.id)}
+                            onClick={async () => {
+                              try {
+                                await downloadTicket(booking.id);
+                                showToast('Ticket downloaded successfully.', 'success');
+                              } catch (error: any) {
+                                showToast(error?.message || 'Failed to download ticket.', 'error');
+                              }
+                            }}
                             className="bg-primary text-on-primary px-5 py-2.5 rounded-xl font-bold text-sm shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2"
                           >
                             <span className="material-symbols-outlined text-lg">download</span>

@@ -1,21 +1,23 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getEvent } from '../api/events';
+import { getManageEvent } from '../api/events';
 import { getEventForm, updateEventForm } from '../api/organizer';
 import Header from '../components/layout/Header';
 import { Button } from '../components/ui/button';
 import { Plus, Trash2, Save, ArrowLeft } from 'lucide-react';
+import { useToast } from '../components/ui/toast-provider';
 
 export default function ManageEventFormPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { showToast } = useToast();
   const [questions, setQuestions] = useState<{ question: string; required: boolean }[]>([]);
 
   const { data: event } = useQuery({
     queryKey: ['event', id],
-    queryFn: () => getEvent(id!),
+    queryFn: () => getManageEvent(id!),
     enabled: !!id,
   });
 
@@ -38,7 +40,7 @@ export default function ManageEventFormPage() {
     mutationFn: (data: any) => updateEventForm(id!, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['event-form', id] });
-      alert('Event form updated successfully!');
+      showToast('Event form updated successfully!', 'success');
       navigate('/organizer');
     },
   });
@@ -65,7 +67,7 @@ export default function ManageEventFormPage() {
 
   const handleSave = () => {
     if (questions.some(q => !q.question.trim())) {
-      alert('Please fill in all questions or remove empty ones.');
+      showToast('Please fill in all questions or remove empty ones.', 'error');
       return;
     }
     mutation.mutate({ questions });

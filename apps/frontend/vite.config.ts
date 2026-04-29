@@ -7,4 +7,15 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
+  server: {
+    allowedHosts: [
+      'localhost',
+      'eventify.local.home',
+      'eventify-dev.local.home',
+      'eventify-admin.local.home',
+      'eventify-admin-dev.local.home',
+      'app.chihab.online',
+      'admin.chihab.online',
+    ],
+  },
 })

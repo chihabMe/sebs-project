@@ -1,30 +1,138 @@
 services:
-  db:
-    image: postgres:15-alpine
-    restart: always
-    environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: sebs_db
+  traefik:
+    image: traefik:v3.2
+    restart: unless-stopped
+    command:
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+      - "--certificatesresolvers.letsencrypt.acme.email=${TRAEFIK_ACME_EMAIL:?TRAEFIK_ACME_EMAIL is required}"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
     ports:
-      - "5432:5432"
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - traefik-letsencrypt:/letsencrypt
+    networks:
+      - traefik-network
 
   backend:
     build:
       context: .
-      dockerfile: ./apps/backend/Dockerfile
-    ports:
-      - "4000:4000"
+      dockerfile: ./Dockerfile
+      target: backend-runtime
     environment:
-      DATABASE_URL: postgresql://user:password@db:5432/sebs_db
-    depends_on:
-      - db
+      PORT: 4000
+      NODE_ENV: production
+      FRONTEND_URLS: https://app.chihab.online,https://admin.chihab.online
+      FIRESTORE_PROJECT_ID: ${FIRESTORE_PROJECT_ID:?FIRESTORE_PROJECT_ID is required}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:?JWT_REFRESH_SECRET is required}
+    restart: unless-stopped
+    networks:
+      - sebs
+      - traefik-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:4000/api/health >/dev/null 2>&1 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.eventify-backend.rule=Host(`api.chihab.online`)"
+      - "traefik.http.routers.eventify-backend.entrypoints=web,websecure"
+      - "traefik.http.routers.eventify-backend.tls=true"
+      - "traefik.http.routers.eventify-backend.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.eventify-backend-web.rule=Host(`app.chihab.online`) && (PathPrefix(`/api`) || PathPrefix(`/uploads`))"
+      - "traefik.http.routers.eventify-backend-web.entrypoints=web,websecure"
+      - "traefik.http.routers.eventify-backend-web.tls=true"
+      - "traefik.http.routers.eventify-backend-web.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.eventify-backend-web.priority=100"
+      - "traefik.http.routers.eventify-backend-admin.rule=Host(`admin.chihab.online`) && (PathPrefix(`/api`) || PathPrefix(`/uploads`))"
+      - "traefik.http.routers.eventify-backend-admin.entrypoints=web,websecure"
+      - "traefik.http.routers.eventify-backend-admin.tls=true"
+      - "traefik.http.routers.eventify-backend-admin.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.eventify-backend-admin.priority=100"
+      - "traefik.http.services.eventify-backend.loadbalancer.server.port=4000"
+      - "traefik.docker.network=traefik-network"
 
   frontend:
     build:
       context: .
-      dockerfile: ./apps/frontend/Dockerfile
-    ports:
-      - "3000:80"
+      dockerfile: ./Dockerfile
+      target: frontend-runtime
+      args:
+        VITE_API_URL: /api
+        VITE_ADMIN_URL: https://admin.chihab.online
+    restart: unless-stopped
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
+    networks:
+      - sebs
+      - traefik-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.eventify-frontend.rule=Host(`app.chihab.online`)"
+      - "traefik.http.routers.eventify-frontend.entrypoints=web,websecure"
+      - "traefik.http.routers.eventify-frontend.tls=true"
+      - "traefik.http.routers.eventify-frontend.tls.certresolver=letsencrypt"
+      - "traefik.http.services.eventify-frontend.loadbalancer.server.port=80"
+      - "traefik.docker.network=traefik-network"
+
+  admin:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+      target: admin-runtime
+      args:
+        VITE_API_URL: /api
+        VITE_WEB_URL: https://app.chihab.online
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - sebs
+      - traefik-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.eventify-admin.rule=Host(`admin.chihab.online`)"
+      - "traefik.http.routers.eventify-admin.entrypoints=web,websecure"
+      - "traefik.http.routers.eventify-admin.tls=true"
+      - "traefik.http.routers.eventify-admin.tls.certresolver=letsencrypt"
+      - "traefik.http.services.eventify-admin.loadbalancer.server.port=80"
+      - "traefik.docker.network=traefik-network"
+
+  dozzle:
+    image: amir20/dozzle:latest
+    restart: unless-stopped
+    environment:
+      DOZZLE_NO_ANALYTICS: "true"
+      DOZZLE_LEVEL: info
+      DOZZLE_HOSTNAME: Eventify Logs
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - sebs
+      - traefik-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.eventify-logs.rule=Host(`logs.chihab.online`)"
+      - "traefik.http.routers.eventify-logs.entrypoints=web,websecure"
+      - "traefik.http.routers.eventify-logs.tls=true"
+      - "traefik.http.routers.eventify-logs.tls.certresolver=letsencrypt"
+      - "traefik.http.services.eventify-logs.loadbalancer.server.port=8080"
+      - "traefik.docker.network=traefik-network"
+
+networks:
+  sebs:
+  traefik-network:
+volumes:
+  traefik-letsencrypt:

@@ -3,6 +3,9 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../api/client';
 import { LoginInput, ApiResponse, AuthResponse } from '@sebs/shared';
+import { handleApiError } from '../utils/errorHandler';
+
+const adminAppUrl = import.meta.env.VITE_ADMIN_URL || 'http://localhost:5174';
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -24,15 +27,22 @@ export default function LoginPage() {
       queryClient.setQueryData(['auth-user'], user);
       
       if (user?.role === 'ADMIN') {
-        navigate('/admin');
+        window.location.assign(adminAppUrl);
       } else if (user?.role === 'ORGANIZER') {
         navigate('/organizer');
       } else {
         navigate('/dashboard');
       }
     },
-    onError: (err: any) => {
-      setError(err.response?.data?.message || 'Invalid email or password.');
+    onError: (err: unknown) => {
+      const apiError = handleApiError(err);
+      console.error('Login request failed', {
+        message: apiError.message,
+        code: apiError.code,
+        errorId: apiError.errorId,
+        details: apiError.details,
+      });
+      setError(apiError.message || 'Invalid email or password.');
     },
   });
 
@@ -124,6 +134,9 @@ export default function LoginPage() {
             <p className="text-on-surface-variant text-sm font-medium">
               Don't have an account? 
               <Link to="/register" className="text-primary font-bold hover:underline ml-1">Register</Link>
+            </p>
+            <p className="mt-3 text-xs text-on-surface-variant/70">
+              Administrators should use the dedicated admin portal.
             </p>
           </div>
         </div>

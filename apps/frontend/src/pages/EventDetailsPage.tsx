@@ -1,18 +1,17 @@
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getEvent } from '../api/events';
-import { api } from '../api/client';
-import { checkBookingStatus, cancelBooking } from '../api/bookings';
+import { checkBookingStatus, cancelBooking, createBooking, getMyBookings } from '../api/bookings';
 import { getEventForm } from '../api/organizer';
 import Header from '../components/layout/Header';
 import { useAuth } from '../hooks/useAuth';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { formatImageUrl } from '../utils/formatUrl';
 import { Button } from '../components/ui/button';
 import { Calendar, MapPin, User, ShieldCheck, Ticket } from 'lucide-react';
 import BookingFormModal from '../components/events/BookingFormModal';
-import ReviewList from '../components/events/ReviewList';
-import ReviewForm from '../components/events/ReviewForm';
+import { useToast } from '../components/ui/toast-provider';
+import EventReviews from '../components/events/EventReviews';
 
 export default function EventDetailsPage() {
   const { id } = useParams();
@@ -21,8 +20,10 @@ export default function EventDetailsPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { user, isAuthenticated } = useAuth();
+  const { showToast } = useToast();
   const [error, setError] = useState<string | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [hasAttended, setHasAttended] = useState(false);
 
   const { data: event, isLoading: eventLoading } = useQuery({
     queryKey: ['event', id],
@@ -36,6 +37,18 @@ export default function EventDetailsPage() {
     enabled: !!id && !!user && user.role === 'USER',
   });
 
+  useEffect(() => {
+    if (user && id && booking && booking.isBooked && booking.status === 'CONFIRMED') {
+      getMyBookings().then(myBookings => {
+        if (!myBookings) return;
+        const currentBooking = myBookings.find((b: any) => b.eventId === id);
+        if (currentBooking && currentBooking.attended) {
+          setHasAttended(true);
+        }
+      }).catch(console.error);
+    }
+  }, [user, id, booking]);
+
   const { data: formQuestions } = useQuery({
     queryKey: ['event-form', id],
     queryFn: () => getEventForm(id!),
@@ -43,20 +56,17 @@ export default function EventDetailsPage() {
   });
 
   const bookMutation = useMutation({
-    mutationFn: async (answers?: any[]) => {
-      const url = invitationToken ? `/bookings?token=${invitationToken}` : '/bookings';
-      const response = await api.post(url, { eventId: id, answers });
-      return response.data;
-    },
+    mutationFn: async (answers?: any[]) => createBooking(id!, answers, invitationToken || undefined),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['booking-status', id] });
       queryClient.invalidateQueries({ queryKey: ['my-bookings'] });
       setIsFormOpen(false);
       setError(null);
-      if (data.message) alert(data.message);
+      if (data.message) showToast(data.message, 'success');
     },
     onError: (err: any) => {
       setError(err.response?.data?.message || 'Booking failed. Please check your registry data.');
+      showToast(err.response?.data?.message || 'Booking failed. Please check your registry data.', 'error');
       setIsFormOpen(false);
     },
   });
@@ -78,6 +88,7 @@ export default function EventDetailsPage() {
     },
     onError: (err: any) => {
       setError(err.response?.data?.message || 'Cancellation failed.');
+      showToast(err.response?.data?.message || 'Cancellation failed.', 'error');
     },
   });
 
@@ -96,11 +107,13 @@ export default function EventDetailsPage() {
 
   if (!event) return <div>Event not found</div>;
 
-  const isOrganizerOrAdmin = user?.role === 'ORGANIZER' || user?.role === 'ADMIN';
+  const isOrganizer = user?.role === 'ORGANIZER';
   const hasConfirmedBooking = booking && booking.status === 'CONFIRMED';
   const hasPendingBooking = booking && booking.status === 'PENDING';
   const hasRejectedBooking = booking && booking.status === 'REJECTED';
   const hasCancelledBooking = booking && booking.status === 'CANCELLED';
+
+  const isCompleted = event.status === 'COMPLETED' || new Date(event.date) < new Date();
 
   return (
     <div className="bg-surface text-on-surface min-h-screen flex flex-col selection:bg-primary-container selection:text-on-primary-container">
@@ -168,24 +181,18 @@ export default function EventDetailsPage() {
             )}
 
             {/* Reviews Section */}
-            <div className="pt-16 border-t border-primary/10">
-              <ReviewList eventId={event.id} />
-              {hasConfirmedBooking && (
-                <div className="mt-12">
-                  <ReviewForm eventId={event.id} />
-                </div>
-              )}
-            </div>
+            <EventReviews eventId={event.id} hasAttended={hasAttended || isCompleted} />
+
           </div>
 
           {/* Sticky Booking Sidebar */}
           <div className="lg:col-span-4">
             <div className="sticky top-32 space-y-8">
               <div className="bg-surface-container-low rounded-3xl p-10 shadow-[0_24px_48px_rgba(62,0,0,0.06)] border border-primary/5 ring-1 ring-white">
-                <div className="flex justify-between items-center mb-10">
+                <div className="flex justify-end items-center mb-10">
                   <div>
-                    <span className="text-outline text-[10px] font-black uppercase tracking-widest block mb-2 opacity-60">Entry Value</span>
-                    <span className="text-5xl font-black text-primary font-headline tracking-tighter">${event.price}</span>
+                    <span className="text-outline text-[10px] font-black uppercase tracking-widest block mb-2 opacity-60">Entry Access</span>
+                    <span className="text-4xl font-black text-primary font-headline tracking-tighter">Free</span>
                   </div>
                   <div className="bg-primary/5 p-4 rounded-2xl flex flex-col items-end border border-primary/10">
                     <div className="flex items-center gap-1.5 text-primary">
@@ -223,7 +230,7 @@ export default function EventDetailsPage() {
                     <div className="bg-primary/5 text-primary p-8 rounded-2xl border border-primary/10">
                       <ClipboardCheck className="w-12 h-12 mx-auto mb-4 opacity-50" />
                       <p className="font-black font-headline text-xl">Registry Pending</p>
-                      <p className="text-xs mt-2 font-medium text-outline">The curator is reviewing your entry credentials.</p>
+                      <p className="text-xs mt-2 font-medium text-outline">The curator is processing your entry request.</p>
                     </div>
                     <button 
                       onClick={() => cancelMutation.mutate()}
@@ -247,7 +254,7 @@ export default function EventDetailsPage() {
                       >
                         Verify Identity to Book
                       </Button>
-                    ) : isOrganizerOrAdmin ? (
+                    ) : isOrganizer ? (
                       <div className="space-y-4">
                         <Button 
                           disabled
@@ -326,7 +333,7 @@ function ClipboardCheck(props: any) {
       strokeLinejoin="round"
     >
       <rect width="8" height="4" x="8" y="2" rx="1" ry="1" />
-      <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+      <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1 2-2h2" />
       <path d="m9 14 2 2 4-4" />
     </svg>
   )

@@ -3,7 +3,11 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
+      "outputs": ["dist/**", ".next/**", "*.tsbuildinfo", "!.next/cache/**"],
+      "env": ["VITE_API_URL", "VITE_ADMIN_URL", "VITE_WEB_URL"]
+    },
+    "test": {
+      "dependsOn": ["^build"]
     },
     "lint": {},
     "dev": {

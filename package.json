@@ -7,7 +7,25 @@
     "dev": "turbo dev",
     "build": "turbo build",
     "lint": "turbo lint",
-    "test": "turbo test"
+    "test": "turbo test",
+    "docker:build": "docker compose build",
+    "docker:up": "docker compose up --build -d",
+    "docker:down": "docker compose down",
+    "docker:logs": "docker compose logs -f",
+    "docker:dev:up": "docker compose -f docker-compose.dev.yml up -d",
+    "docker:dev:down": "docker compose -f docker-compose.dev.yml down",
+    "docker:dev:logs": "docker compose -f docker-compose.dev.yml logs -f",
+    "openapi:generate": "pnpm --filter @sebs/backend openapi:generate",
+    "api:types:generate": "node scripts/generate-frontend-api-contract.mjs",
+    "api:contract:check": "node scripts/check-frontend-api-contract.mjs",
+    "smoke:api": "bash scripts/smoke-api.sh",
+    "smoke:admin": "bash scripts/smoke-admin.sh",
+    "smoke:runtime": "bash scripts/dev-integration.sh",
+    "dev:integration": "bash scripts/dev-integration.sh",
+    "verify:all": "pnpm openapi:generate && pnpm api:types:generate && pnpm api:contract:check && pnpm test && pnpm build",
+    "scan:quick": "node scripts/run-project-scan.mjs quick --fail-on-high",
+    "scan:full": "node scripts/run-project-scan.mjs full --fail-on-high",
+    "scan:report": "node scripts/run-project-scan.mjs full"
   },
   "keywords": [],
   "author": "",
@@ -15,10 +33,7 @@
   "packageManager": "pnpm@10.30.0",
   "pnpm": {
     "onlyBuiltDependencies": [
-      "@prisma/client",
-      "@prisma/engines",
-      "esbuild",
-      "prisma"
+      "esbuild"
     ]
   },
   "devDependencies": {

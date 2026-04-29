@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateReviewDto } from './dto/review.dto';
+import { ReviewsQueryDto } from './dto/reviews-query.dto';
 
 @Injectable()
 export class ReviewsService {
@@ -16,8 +17,8 @@ export class ReviewsService {
       where: { userId_eventId: { userId, eventId } }
     });
 
-    if (!booking || booking.status !== 'CONFIRMED') {
-      throw new BadRequestException('You must have a confirmed booking to review this event');
+    if (!booking || booking.status !== 'CONFIRMED' || (!booking.attended && event.status !== 'COMPLETED' && new Date(event.date) >= new Date())) {
+      throw new BadRequestException('You must have attended the event to review it');
     }
 
     const existingReview = await this.prisma.review.findUnique({
@@ -36,15 +37,35 @@ export class ReviewsService {
     });
   }
 
-  async findByEvent(eventId: string) {
-    const reviews = await this.prisma.review.findMany({
-      where: { eventId },
+  async findByEvent(eventId: string, query: ReviewsQueryDto = {}) {
+    const where: any = { eventId };
+
+    if (typeof query.minRating === 'number' || typeof query.maxRating === 'number') {
+      where.rating = {
+        ...(typeof query.minRating === 'number' ? { gte: query.minRating } : {}),
+        ...(typeof query.maxRating === 'number' ? { lte: query.maxRating } : {}),
+      };
+    }
+
+    if (query.search) {
+      where.comment = { contains: query.search, mode: 'insensitive' };
+    }
+
+    const args: any = {
+      where,
       include: { user: { select: { name: true, id: true } } },
       orderBy: { createdAt: 'desc' }
-    });
+    };
+
+    if (query.page && query.limit) {
+      args.skip = (query.page - 1) * query.limit;
+      args.take = query.limit;
+    }
+
+    const reviews = await this.prisma.review.findMany(args);
 
     const aggregations = await this.prisma.review.aggregate({
-      where: { eventId },
+      where,
       _avg: { rating: true },
       _count: { id: true }
     });

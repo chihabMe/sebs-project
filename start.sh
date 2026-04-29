@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# This script runs both the frontend and backend using the existing Turborepo configuration.
+# This script runs the backend, frontend, and admin apps using the existing Turborepo configuration.
 # Note: You can also just run `pnpm run dev` directly in your terminal.
 
-echo "Starting SEBS backend and frontend concurrently..."
+echo "Starting SEBS backend, frontend, and admin concurrently..."
 pnpm run dev

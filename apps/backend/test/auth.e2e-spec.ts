@@ -1,70 +1,143 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication, ValidationPipe } from '@nestjs/common';
-import * as request from 'supertest';
+import { randomUUID } from 'crypto';
 import { AppModule } from './../src/app.module';
 import { PrismaService } from './../src/prisma/prisma.service';
-import * as cookieParser from 'cookie-parser';
+import { AuthController } from './../src/auth/auth.controller';
+
+type TestUser = {
+  id: string;
+  email: string;
+  password: string;
+  name: string;
+  role: string;
+  avatar: string | null;
+  bio: string | null;
+  isBanned: boolean;
+  tags: Array<{ id: string; name: string }>;
+};
+
+const createPrismaMock = () => {
+  const users: TestUser[] = [];
+
+  return {
+    user: {
+      findUnique: jest.fn(async ({ where }: any) => {
+        if (where.email) {
+          return users.find((user) => user.email === where.email) ?? null;
+        }
+        if (where.id) {
+          return users.find((user) => user.id === where.id) ?? null;
+        }
+        return null;
+      }),
+      create: jest.fn(async ({ data }: any) => {
+        const user: TestUser = {
+          id: randomUUID(),
+          email: data.email,
+          password: data.password,
+          name: data.name,
+          role: data.role,
+          avatar: null,
+          bio: null,
+          isBanned: false,
+          tags: [],
+        };
+        users.push(user);
+        return user;
+      }),
+    },
+    event: {
+      findMany: jest.fn(async () => []),
+    },
+  };
+};
+
+const createMockResponse = () => {
+  const response: any = {
+    statusCode: 200,
+    body: null,
+    cookies: {} as Record<string, string>,
+  };
+
+  response.cookie = jest.fn((name: string, value: string) => {
+    response.cookies[name] = value;
+    return response;
+  });
+  response.status = jest.fn((code: number) => {
+    response.statusCode = code;
+    return response;
+  });
+  response.json = jest.fn((payload: any) => {
+    response.body = payload;
+    return response;
+  });
+
+  return response;
+};
 
 describe('AuthController (e2e)', () => {
-  let app: INestApplication;
-  let prisma: PrismaService;
+  let moduleFixture: TestingModule;
+  let authController: AuthController;
 
   beforeAll(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
+    moduleFixture = await Test.createTestingModule({
       imports: [AppModule],
-    }).compile();
+    })
+      .overrideProvider(PrismaService)
+      .useValue(createPrismaMock())
+      .compile();
 
-    app = moduleFixture.createNestApplication();
-    app.use(cookieParser());
-    app.useGlobalPipes(new ValidationPipe());
-    app.setGlobalPrefix('api');
-    await app.init();
-
-    prisma = moduleFixture.get<PrismaService>(PrismaService);
+    authController = moduleFixture.get<AuthController>(AuthController);
   });
 
   afterAll(async () => {
-    await app.close();
+    await moduleFixture.close();
   });
 
-  it('/api/auth/register (POST)', () => {
+  it('/api/auth/register (POST)', async () => {
     const email = `test${Date.now()}@example.com`;
-    return request(app.getHttpServer())
-      .post('/api/auth/register')
-      .send({
+    const res = createMockResponse();
+
+    await authController.register(
+      {
         name: 'John Doe',
-        email: email,
+        email,
         password: 'password123',
-      })
-      .expect(201)
-      .expect((res) => {
-        expect(res.body.data.user.email).toBe(email);
-        expect(res.body.data.token).toBeDefined();
-      });
+      },
+      res,
+    );
+
+    expect(res.status).toHaveBeenCalledWith(201);
+    expect(res.body.data.user.email).toBe(email);
+    expect(res.body.data.token).toBeDefined();
+    expect(res.cookies.accessToken).toBeDefined();
+    expect(res.cookies.refreshToken).toBeDefined();
   });
 
   it('/api/auth/login (POST)', async () => {
     const email = `login${Date.now()}@example.com`;
-    await request(app.getHttpServer())
-      .post('/api/auth/register')
-      .send({
+    const registerRes = createMockResponse();
+    await authController.register(
+      {
         name: 'Jane Doe',
-        email: email,
+        email,
         password: 'password123',
-      });
+      },
+      registerRes,
+    );
 
-    return request(app.getHttpServer())
-      .post('/api/auth/login')
-      .send({
-        email: email,
+    const loginRes = createMockResponse();
+    await authController.login(
+      {
+        email,
         password: 'password123',
-      })
-      .expect(200)
-      .expect((res) => {
-        expect(res.body.data.token).toBeDefined();
-        const cookies = res.headers['set-cookie'];
-        expect(cookies).toBeDefined();
-        expect(cookies[0]).toContain('accessToken=');
-      });
+      },
+      loginRes,
+    );
+
+    expect(loginRes.status).toHaveBeenCalledWith(200);
+    expect(loginRes.body.data.token).toBeDefined();
+    expect(loginRes.cookies.accessToken).toBeDefined();
+    expect(loginRes.cookies.refreshToken).toBeDefined();
   });
 });

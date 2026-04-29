@@ -2,6 +2,11 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
+ARG VITE_API_URL=http://localhost:4000/api
+ARG VITE_ADMIN_URL=http://localhost:3001
+ENV VITE_API_URL=$VITE_API_URL
+ENV VITE_ADMIN_URL=$VITE_ADMIN_URL
+
 RUN corepack enable && corepack prepare pnpm@latest --activate
 
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json turbo.json ./
@@ -15,15 +20,11 @@ COPY apps/frontend ./apps/frontend
 
 RUN pnpm build --filter=@sebs/frontend
 
-# --- Production runner stage ---
-FROM nginx:alpine
+FROM caddy:2-alpine
 
-# Copy built artifacts from builder to Nginx public folder
-COPY --from=builder /app/apps/frontend/dist /usr/share/nginx/html
-
-# Optional: Copy a custom nginx configuration
-# COPY apps/frontend/nginx.conf /etc/nginx/conf.d/default.conf
+COPY apps/frontend/Caddyfile /etc/caddy/Caddyfile
+COPY --from=builder /app/apps/frontend/dist /srv
 
 EXPOSE 80
 
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["caddy", "run", "--config", "/etc/caddy/Caddyfile", "--adapter", "caddyfile"]

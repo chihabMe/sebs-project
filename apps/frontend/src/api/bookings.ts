@@ -13,12 +13,25 @@ export const cancelBooking = async (id: string) => {
 
 export const downloadTicket = async (id: string) => {
   try {
-    const response = await api.get(`/bookings/${id}/ticket`, {
-      responseType: 'blob',
-    });
-    
-    // Create a blob URL and trigger download
-    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const response = await api.get<ApiResponse<{ url: string }>>(`/bookings/${id}/ticket`);
+    const ticketPath = response.data.data?.url;
+    if (!ticketPath) {
+      throw new Error('Ticket URL not found');
+    }
+
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:4000/api';
+    const baseUrl = apiUrl.replace(/\/api\/?$/, '');
+    const ticketUrl = ticketPath.startsWith('http')
+      ? ticketPath
+      : `${baseUrl}${ticketPath.startsWith('/') ? '' : '/'}${ticketPath}`;
+
+    const fileResponse = await fetch(ticketUrl, { credentials: 'include' });
+    if (!fileResponse.ok) {
+      throw new Error('Failed to fetch ticket file');
+    }
+
+    const blob = await fileResponse.blob();
+    const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
     link.setAttribute('download', `ticket-${id}.pdf`);
@@ -30,11 +43,23 @@ export const downloadTicket = async (id: string) => {
     window.URL.revokeObjectURL(url);
   } catch (error) {
     console.error('Download failed:', error);
-    alert('Failed to download ticket. Please try again.');
+    throw new Error('Failed to download ticket. Please try again.');
   }
 };
 
+export const createBooking = async (eventId: string, answers?: any[], token?: string) => {
+  const response = await api.post<ApiResponse<any>>('/bookings', { eventId, answers }, {
+    params: token ? { token } : undefined,
+  });
+  return response.data;
+};
+
 export const checkBookingStatus = async (eventId: string) => {
-  const response = await api.get<ApiResponse<any>>(`/bookings/event/${eventId}/status`);
+  const response = await api.get<ApiResponse<any>>(`/bookings/status/${eventId}`);
   return response.data.data;
+};
+
+export const checkIn = async (eventId: string) => {
+  const response = await api.post<ApiResponse<any>>(`/bookings/checkin/${eventId}`);
+  return response.data;
 };

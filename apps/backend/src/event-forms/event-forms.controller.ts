@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, UseGuards, ParseUUIDPipe } from '@nestjs/common';
 import { EventFormsService } from './event-forms.service';
 import { UpdateEventFormDto } from './dto/event-form.dto';
 import { AuthGuard } from '../auth/guards/auth.guard';
@@ -14,7 +14,7 @@ export class EventFormsController {
 
   @Get(':eventId')
   @ApiOperation({ summary: 'Get event form questions' })
-  async getForm(@Param('eventId') eventId: string) {
+  async getForm(@Param('eventId', new ParseUUIDPipe()) eventId: string) {
     const data = await this.eventFormsService.getForm(eventId);
     return { success: true, data };
   }
@@ -24,7 +24,7 @@ export class EventFormsController {
   @Roles('ORGANIZER', 'ADMIN')
   @ApiOperation({ summary: 'Update event form questions' })
   async updateForm(
-    @Param('eventId') eventId: string,
+    @Param('eventId', new ParseUUIDPipe()) eventId: string,
     @Body() dto: UpdateEventFormDto,
     @GetUser('id') userId: string,
     @GetUser('role') userRole: string

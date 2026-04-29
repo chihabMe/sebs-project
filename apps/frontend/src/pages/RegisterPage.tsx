@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../api/client';
 import { RegisterInput, ApiResponse, AuthResponse } from '@sebs/shared';
+import { handleApiError } from '../utils/errorHandler';
 
 export default function RegisterPage() {
   const navigate = useNavigate();
@@ -28,8 +29,15 @@ export default function RegisterPage() {
         navigate('/dashboard');
       }
     },
-    onError: (err: any) => {
-      setError(err.response?.data?.message || 'Registration failed. Please try again.');
+    onError: (err: unknown) => {
+      const apiError = handleApiError(err);
+      console.error('Registration request failed', {
+        message: apiError.message,
+        code: apiError.code,
+        errorId: apiError.errorId,
+        details: apiError.details,
+      });
+      setError(apiError.message || 'Registration failed. Please try again.');
     },
   });
 

@@ -14,6 +14,7 @@ import { UsersModule } from './users/users.module';
 import { AdminModule } from './admin/admin.module';
 import { OrganizerModule } from './organizer/organizer.module';
 import { EventFormsModule } from './event-forms/event-forms.module';
+import { HealthModule } from './health/health.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { EventFormsModule } from './event-forms/event-forms.module';
     AdminModule,
     OrganizerModule,
     EventFormsModule,
+    HealthModule,
   ],
   controllers: [],
   providers: [

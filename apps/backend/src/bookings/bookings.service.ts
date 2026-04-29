@@ -12,8 +12,12 @@ export class BookingsService {
     private ticketsService: TicketsService,
   ) {}
 
-  async create(userId: string, dto: CreateBookingDto, token?: string) {
+  async create(userId: string, userRole: string, dto: CreateBookingDto, token?: string) {
     const { eventId, answers } = dto;
+
+    if (userRole !== 'USER') {
+      throw new ForbiddenException('Only normal users can book tickets');
+    }
 
     const event = await this.prisma.event.findUnique({
       where: { id: eventId },
@@ -24,8 +28,12 @@ export class BookingsService {
     });
 
     if (!event) throw new NotFoundException('Event not found');
+    if (!event.isApproved) {
+      throw new BadRequestException('Event is awaiting admin approval');
+    }
 
     const isViaInvite = token && event.invitationToken === token;
+    const shouldAutoConfirm = Boolean(isViaInvite) || Boolean(event.autoApproveBookings);
 
     if (!isViaInvite && event.status !== 'UPCOMING') {
       throw new BadRequestException('Cannot book tickets for an event that is not upcoming');
@@ -56,7 +64,7 @@ export class BookingsService {
         const updatedBooking = await this.prisma.booking.update({
           where: { id: existingBooking.id },
           data: { 
-            status: isViaInvite ? 'CONFIRMED' : 'PENDING',
+            status: shouldAutoConfirm ? 'CONFIRMED' : 'PENDING',
             answers: {
               deleteMany: {},
               create: answers?.map(a => ({
@@ -67,7 +75,8 @@ export class BookingsService {
           },
           include: { user: true, event: true }
         });
-        
+
+        this.mailService.sendBookingRequestReceived(updatedBooking.user, updatedBooking.event).catch(console.error);
         if (updatedBooking.status === 'CONFIRMED') {
           this.mailService.sendBookingConfirmation(updatedBooking.user, updatedBooking.event).catch(console.error);
         }
@@ -81,7 +90,7 @@ export class BookingsService {
       data: {
         userId,
         eventId,
-        status: isViaInvite ? 'CONFIRMED' : 'PENDING',
+        status: shouldAutoConfirm ? 'CONFIRMED' : 'PENDING',
         answers: {
           create: answers?.map(a => ({
             questionId: a.questionId,
@@ -92,11 +101,26 @@ export class BookingsService {
       include: { user: true, event: true }
     });
 
+    this.mailService.sendBookingRequestReceived(booking.user, booking.event).catch(console.error);
     if (booking.status === 'CONFIRMED') {
       this.mailService.sendBookingConfirmation(booking.user, booking.event).catch(console.error);
     }
 
     return booking;
+  }
+
+  async checkIn(eventId: string, userId: string) {
+    const booking = await this.prisma.booking.findUnique({
+      where: { userId_eventId: { userId, eventId } }
+    });
+
+    if (!booking) throw new NotFoundException('Booking not found');
+    if (booking.status !== 'CONFIRMED') throw new BadRequestException('Booking is not confirmed');
+
+    return this.prisma.booking.update({
+      where: { id: booking.id },
+      data: { attended: true }
+    });
   }
 
   async findMy(userId: string) {

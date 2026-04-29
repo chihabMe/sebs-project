@@ -5,5 +5,18 @@ build/
 .DS_Store
 coverage/
 .turbo/
+.pnpm-store/
+.codex
+.codex/
+.crewly/
+.gemini/
+
+*.log
+cookies_*.txt
+*.tsbuildinfo
+apps/backend/uploads/*
+!apps/backend/uploads/.gitkeep
+reports/scan-*.md
+reports/scan-*.json
 
 GEMINI.md

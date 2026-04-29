@@ -4,8 +4,9 @@ export const formatImageUrl = (path: string | null | undefined) => {
   // If it's already a full URL, return it
   if (path.startsWith('http')) return path;
   
-  // Otherwise, prepend the backend URL
-  const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:4000';
+  // Otherwise, prepend the backend origin (without /api)
+  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:4000/api';
+  const baseUrl = apiUrl.replace(/\/api\/?$/, '');
   
   // Ensure we don't have double slashes
   const cleanPath = path.startsWith('/') ? path : `/${path}`;

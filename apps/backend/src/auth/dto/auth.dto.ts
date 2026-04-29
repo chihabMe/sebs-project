@@ -1,5 +1,6 @@
 import { IsEmail, IsEnum, IsOptional, IsString, MinLength } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
+import { Role } from '@sebs/shared';
 
 export class RegisterDto {
   @ApiProperty({ example: 'user@example.com' })
@@ -18,7 +19,7 @@ export class RegisterDto {
   @ApiProperty({ enum: ['USER', 'ORGANIZER'], required: false })
   @IsOptional()
   @IsEnum(['USER', 'ORGANIZER'])
-  role?: 'USER' | 'ORGANIZER';
+  role?: Extract<Role, 'USER' | 'ORGANIZER'>;
 }
 
 export class LoginDto {

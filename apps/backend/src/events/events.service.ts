@@ -1,6 +1,8 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { type EventStatus } from '@sebs/shared';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateEventDto, UpdateEventDto } from './dto/event.dto';
+import { EventsQueryDto } from './dto/events-query.dto';
 
 @Injectable()
 export class EventsService {
@@ -28,8 +30,8 @@ export class EventsService {
     });
   }
 
-  async findAll(query: any) {
-    const { search, category, date, tag } = query;
+  async findAll(query: EventsQueryDto) {
+    const { search, category, date, tag, status, page, limit } = query;
     const where: any = { isApproved: true };
 
     if (search) {
@@ -49,6 +51,10 @@ export class EventsService {
       where.tags = { some: { id: tag } };
     }
 
+    if (status) {
+      where.status = status;
+    }
+
     if (date) {
       const filterDate = new Date(date);
       if (!isNaN(filterDate.getTime())) {
@@ -58,14 +64,21 @@ export class EventsService {
       }
     }
 
-    return this.prisma.event.findMany({
+    const args: any = {
       where,
       orderBy: { date: 'asc' },
       include: {
         organizer: { select: { id: true, name: true } },
         tags: true
       }
-    });
+    };
+
+    if (page && limit) {
+      args.skip = (page - 1) * limit;
+      args.take = limit;
+    }
+
+    return this.prisma.event.findMany(args);
   }
 
   async findOne(id: string) {
@@ -77,6 +90,25 @@ export class EventsService {
       }
     });
     if (!event) throw new NotFoundException('Event not found');
+    if (!event.isApproved) {
+      throw new NotFoundException('Event not found');
+    }
+    return event;
+  }
+
+  async findOneForManager(id: string, userId: string, userRole: string) {
+    const event = await this.prisma.event.findUnique({
+      where: { id },
+      include: {
+        organizer: { select: { id: true, name: true } },
+        tags: true
+      }
+    });
+
+    if (!event) throw new NotFoundException('Event not found');
+    if (event.organizerId !== userId && userRole !== 'ADMIN') {
+      throw new ForbiddenException('You are not authorized to access this event');
+    }
     return event;
   }
 
@@ -89,7 +121,7 @@ export class EventsService {
   }
 
   async update(id: string, userId: string, userRole: string, dto: UpdateEventDto, image?: string) {
-    const event = await this.findOne(id);
+    const event = await this.findOneForManager(id, userId, userRole);
     if (event.organizerId !== userId && userRole !== 'ADMIN') {
       throw new ForbiddenException('You are not authorized to update this event');
     }
@@ -100,7 +132,7 @@ export class EventsService {
       data: {
         ...restData,
         date: dto.date ? new Date(dto.date) : undefined,
-        status: dto.status as any,
+        status: dto.status,
         tags: tags ? {
           set: tags.map((tagId) => ({ id: tagId }))
         } : undefined,
@@ -114,15 +146,15 @@ export class EventsService {
   }
 
   async remove(id: string, userId: string, userRole: string) {
-    const event = await this.findOne(id);
+    const event = await this.findOneForManager(id, userId, userRole);
     if (event.organizerId !== userId && userRole !== 'ADMIN') {
       throw new ForbiddenException('You are not authorized to delete this event');
     }
     return this.prisma.event.delete({ where: { id } });
   }
 
-  async updateStatus(id: string, status: string, userId: string, userRole: string) {
-    const event = await this.findOne(id);
+  async updateStatus(id: string, status: EventStatus, userId: string, userRole: string) {
+    const event = await this.findOneForManager(id, userId, userRole);
     if (event.organizerId !== userId && userRole !== 'ADMIN') {
       throw new ForbiddenException('Unauthorized to update this event');
     }
@@ -161,4 +193,5 @@ export class EventsService {
       include: { tags: true, organizer: { select: { id: true, name: true } } }
     });
   }
+
 }

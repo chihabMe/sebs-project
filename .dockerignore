@@ -1,0 +1,14 @@
+node_modules
+.pnpm-store
+.turbo
+dist
+coverage
+*.tsbuildinfo
+*.log
+.git
+.github
+reports
+todos
+c_design
+.codex
+tmp

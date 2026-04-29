@@ -34,7 +34,7 @@ export const getPublicProfile = async (userId: string) => {
 
 export const updateProfile = async (data: any) => {
   try {
-    const response = await api.put<ApiResponse<UserDto>>('/users/profile', data);
+    const response = await api.patch<ApiResponse<UserDto>>('/users/profile', data);
     return response.data;
   } catch (error) {
     const apiError = handleApiError(error);

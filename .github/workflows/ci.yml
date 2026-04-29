@@ -9,6 +9,9 @@ on:
     branches:
       - master
       - main
+  workflow_dispatch:
+  schedule:
+    - cron: '0 2 * * *'
 
 jobs:
   build-and-test:
@@ -29,10 +32,22 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Lint
-        run: pnpm run lint || echo "No lint script defined in root, skipping..."
+        run: pnpm run lint
 
       - name: Build Shared
         run: pnpm --filter=@sebs/shared run build
+
+      - name: Generate OpenAPI Spec
+        run: pnpm run openapi:generate
+
+      - name: Generate Frontend API Contract Types
+        run: pnpm run api:types:generate
+
+      - name: Verify OpenAPI Spec Is Committed
+        run: git diff --exit-code apps/backend/openapi.json
+
+      - name: Check Frontend API Contract
+        run: pnpm run api:contract:check
 
       - name: Build Backend
         run: |
@@ -40,8 +55,20 @@ jobs:
           npx prisma generate
           pnpm run build
 
+      - name: Backend Unit/Integration Tests
+        run: pnpm --filter=@sebs/backend run test
+
+      - name: Backend E2E Tests
+        run: pnpm --filter=@sebs/backend run test:e2e
+
       - name: Build Frontend
         run: pnpm --filter=@sebs/frontend run build
+
+      - name: Build Admin
+        run: pnpm --filter=@sebs/admin run build
+
+      - name: Verify Workspace Build
+        run: pnpm run build
 
   docker-build:
     needs: build-and-test
@@ -56,3 +83,33 @@ jobs:
 
       - name: Build Frontend Image
         run: docker build -t sebs-frontend -f apps/frontend/Dockerfile .
+
+      - name: Build Admin Image
+        run: docker build -t sebs-admin -f apps/admin/Dockerfile .
+
+  nightly-full-scan:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run Full Project Scan
+        run: pnpm run scan:full
+
+      - name: Upload Scan Reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: scan-reports
+          path: reports/

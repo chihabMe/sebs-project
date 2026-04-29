@@ -1,7 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
-import * as cookieParser from 'cookie-parser';
+import cookieParser = require('cookie-parser');
 import helmet from 'helmet';
 import { AppModule } from './app.module';
 import { join } from 'path';
@@ -16,21 +16,26 @@ async function bootstrap() {
 
   // Security headers
   app.use(helmet({
-    contentSecurityPolicy: {
-      directives: {
-        defaultSrc: ["'self'"],
-        styleSrc: ["'self'", "'unsafe-inline'"],
-        imgSrc: ["'self'", "data:", "https:"],
-        scriptSrc: ["'self'"],
-        connectSrc: ["'self'", "https://*.resend.com"],
-      },
-    },
+    contentSecurityPolicy: false,
   }));
 
   // CORS
+  const configuredOrigins = (
+    process.env.FRONTEND_URLS ||
+    process.env.FRONTEND_URL ||
+    'http://localhost:5173,http://localhost:5174'
+  )
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+
+  console.log('Configured CORS Origins:', configuredOrigins);
+
   app.enableCors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+    origin: configuredOrigins,
     credentials: true,
+    methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'X-Requested-With'],
   });
 
   // Global pipes & middlewares
@@ -60,7 +65,7 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, document);
 
-  const port = process.env.PORT || 5000;
+  const port = process.env.PORT || 4000;
   await app.listen(port);
   console.log(`Application is running on: http://localhost:${port}/api`);
 }

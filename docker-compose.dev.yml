@@ -1,0 +1,205 @@
+services:
+  firestore-dev:
+    image: gcr.io/google.com/cloudsdktool/google-cloud-cli:emulators
+    restart: unless-stopped
+    command: gcloud beta emulators firestore start --host-port=0.0.0.0:8080 --project=eventify-dev
+    ports:
+      - "8085:8080"
+    networks:
+      - sebs-dev
+
+  deps-dev:
+    image: node:20-alpine
+    working_dir: /workspace
+    command:
+      - /bin/sh
+      - -lc
+      - |
+        corepack enable
+        corepack prepare pnpm@10.30.0 --activate
+        pnpm install
+    volumes:
+      - .:/workspace
+      - node-modules-dev:/workspace/node_modules
+      - pnpm-store-dev:/pnpm/store
+      - corepack-dev:/root/.cache/node/corepack
+    networks:
+      - sebs-dev
+
+  seed-dev:
+    image: node:20-alpine
+    working_dir: /workspace
+    command:
+      - /bin/sh
+      - -lc
+      - |
+        corepack enable
+        pnpm --filter @sebs/backend db:seed
+    environment:
+      NODE_ENV: development
+      FIRESTORE_PROJECT_ID: eventify-dev
+      FIRESTORE_EMULATOR_HOST: firestore-dev:8080
+    depends_on:
+      deps-dev:
+        condition: service_completed_successfully
+      firestore-dev:
+        condition: service_started
+    volumes:
+      - .:/workspace
+      - node-modules-dev:/workspace/node_modules
+      - pnpm-store-dev:/pnpm/store
+      - corepack-dev:/root/.cache/node/corepack
+    networks:
+      - sebs-dev
+
+  backend-dev:
+    image: node:20-alpine
+    working_dir: /workspace
+    command:
+      - /bin/sh
+      - -lc
+      - |
+        corepack enable
+        cd apps/backend
+        rm -rf dist tsconfig.build.tsbuildinfo tsconfig.tsbuildinfo
+        pnpm exec nest start --watch --builder tsc
+    environment:
+      PORT: 4000
+      NODE_ENV: development
+      FRONTEND_URLS: https://eventify-dev.local.home,https://eventify-admin-dev.local.home
+      FIRESTORE_PROJECT_ID: eventify-dev
+      FIRESTORE_EMULATOR_HOST: firestore-dev:8080
+      JWT_SECRET: supersecretfallback
+      JWT_REFRESH_SECRET: refreshsecretfallback
+      CHOKIDAR_USEPOLLING: "true"
+      WATCHPACK_POLLING: "true"
+    depends_on:
+      seed-dev:
+        condition: service_completed_successfully
+      firestore-dev:
+        condition: service_started
+    restart: unless-stopped
+    volumes:
+      - .:/workspace
+      - node-modules-dev:/workspace/node_modules
+      - pnpm-store-dev:/pnpm/store
+      - corepack-dev:/root/.cache/node/corepack
+    networks:
+      - sebs-dev
+      - traefik-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik-network"
+      - "traefik.http.routers.eventify-dev-api.rule=Host(`eventify-api-dev.local.home`)"
+      - "traefik.http.routers.eventify-dev-api.entrypoints=web,websecure"
+      - "traefik.http.routers.eventify-dev-api.tls=true"
+      - "traefik.http.routers.eventify-dev-web-api.rule=Host(`eventify-dev.local.home`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.eventify-dev-web-api.entrypoints=web,websecure"
+      - "traefik.http.routers.eventify-dev-web-api.tls=true"
+      - "traefik.http.routers.eventify-dev-web-api.priority=100"
+      - "traefik.http.routers.eventify-dev-admin-api.rule=Host(`eventify-admin-dev.local.home`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.eventify-dev-admin-api.entrypoints=web,websecure"
+      - "traefik.http.routers.eventify-dev-admin-api.tls=true"
+      - "traefik.http.routers.eventify-dev-admin-api.priority=100"
+      - "traefik.http.services.eventify-dev-api.loadbalancer.server.port=4000"
+
+  frontend-dev:
+    image: node:20-alpine
+    working_dir: /workspace
+    command:
+      - /bin/sh
+      - -lc
+      - |
+        corepack enable
+        pnpm --filter @sebs/frontend exec vite --host 0.0.0.0 --port 5173
+    environment:
+      VITE_API_URL: /api
+      VITE_ADMIN_URL: https://eventify-admin-dev.local.home
+      CHOKIDAR_USEPOLLING: "true"
+      WATCHPACK_POLLING: "true"
+    depends_on:
+      backend-dev:
+        condition: service_started
+      deps-dev:
+        condition: service_completed_successfully
+    restart: unless-stopped
+    volumes:
+      - .:/workspace
+      - node-modules-dev:/workspace/node_modules
+      - pnpm-store-dev:/pnpm/store
+      - corepack-dev:/root/.cache/node/corepack
+    networks:
+      - sebs-dev
+      - traefik-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik-network"
+      - "traefik.http.routers.eventify-dev-web.rule=Host(`eventify-dev.local.home`)"
+      - "traefik.http.routers.eventify-dev-web.entrypoints=web,websecure"
+      - "traefik.http.routers.eventify-dev-web.tls=true"
+      - "traefik.http.services.eventify-dev-web.loadbalancer.server.port=5173"
+
+  admin-dev:
+    image: node:20-alpine
+    working_dir: /workspace
+    command:
+      - /bin/sh
+      - -lc
+      - |
+        corepack enable
+        pnpm --filter @sebs/admin exec vite --host 0.0.0.0 --port 5174
+    environment:
+      VITE_API_URL: /api
+      VITE_WEB_URL: https://eventify-dev.local.home
+      CHOKIDAR_USEPOLLING: "true"
+      WATCHPACK_POLLING: "true"
+    depends_on:
+      backend-dev:
+        condition: service_started
+      deps-dev:
+        condition: service_completed_successfully
+    restart: unless-stopped
+    volumes:
+      - .:/workspace
+      - node-modules-dev:/workspace/node_modules
+      - pnpm-store-dev:/pnpm/store
+      - corepack-dev:/root/.cache/node/corepack
+    networks:
+      - sebs-dev
+      - traefik-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik-network"
+      - "traefik.http.routers.eventify-dev-admin.rule=Host(`eventify-admin-dev.local.home`)"
+      - "traefik.http.routers.eventify-dev-admin.entrypoints=web,websecure"
+      - "traefik.http.routers.eventify-dev-admin.tls=true"
+      - "traefik.http.services.eventify-dev-admin.loadbalancer.server.port=5174"
+
+  dozzle-dev:
+    image: amir20/dozzle:latest
+    restart: unless-stopped
+    environment:
+      DOZZLE_NO_ANALYTICS: "true"
+      DOZZLE_LEVEL: info
+      DOZZLE_HOSTNAME: Eventify Dev Logs
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - traefik-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik-network"
+      - "traefik.http.routers.eventify-dev-logs.rule=Host(`eventify-logs-dev.local.home`)"
+      - "traefik.http.routers.eventify-dev-logs.entrypoints=web,websecure"
+      - "traefik.http.routers.eventify-dev-logs.tls=true"
+      - "traefik.http.services.eventify-dev-logs.loadbalancer.server.port=8080"
+
+volumes:
+  node-modules-dev:
+  pnpm-store-dev:
+  corepack-dev:
+
+networks:
+  sebs-dev:
+  traefik-network:
+    external: true

@@ -9,7 +9,7 @@ import {
   DropdownMenuTrigger 
 } from '../ui/dropdown-menu';
 import { Button } from '../ui/button';
-import { ChevronDown, User, LogOut, LayoutDashboard, Shield, Info, Rocket, HeartHandshake, Menu } from 'lucide-react';
+import { ChevronDown, User, LogOut, LayoutDashboard, Info, HeartHandshake, Menu } from 'lucide-react';
 
 export default function Header() {
   const { user, isAuthenticated, logout, isLoading } = useAuth();
@@ -26,6 +26,11 @@ export default function Header() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" className="w-56 mt-2">
+                <Link to="/">
+                  <DropdownMenuItem className="font-bold uppercase tracking-widest text-[10px]">
+                    Home
+                  </DropdownMenuItem>
+                </Link>
                 <Link to="/events">
                   <DropdownMenuItem className="font-bold uppercase tracking-widest text-[10px]">
                     Experiences
@@ -39,11 +44,6 @@ export default function Header() {
                 <DropdownMenuItem className="gap-2">
                   <HeartHandshake className="w-4 h-4" /> Community Pulse
                 </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuLabel className="text-[10px] uppercase font-bold text-outline">Services</DropdownMenuLabel>
-                <DropdownMenuItem className="gap-2">
-                  <Rocket className="w-4 h-4" /> Rapid Deployment
-                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
@@ -56,6 +56,7 @@ export default function Header() {
           </Link>
           
           <nav className="hidden lg:flex items-center gap-6">
+            <Link to="/" className="text-outline hover:text-primary font-bold text-xs uppercase tracking-widest transition-colors">Home</Link>
             <Link to="/events" className="text-outline hover:text-primary font-bold text-xs uppercase tracking-widest transition-colors">Experiences</Link>
             
             <DropdownMenu>
@@ -73,24 +74,6 @@ export default function Header() {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem className="gap-2 text-[10px] uppercase font-bold text-outline">
                   Curator Registry
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-
-            <DropdownMenu>
-              <DropdownMenuTrigger className="flex items-center gap-1 text-outline hover:text-primary font-bold text-xs uppercase tracking-widest transition-colors outline-none">
-                Services <ChevronDown className="w-3 h-3" />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="mt-2">
-                <DropdownMenuLabel>Platform Capabilities</DropdownMenuLabel>
-                <DropdownMenuItem className="gap-2">
-                  <Rocket className="w-4 h-4" /> Rapid Deployment
-                </DropdownMenuItem>
-                <DropdownMenuItem className="gap-2">
-                   Secure Registry
-                </DropdownMenuItem>
-                <DropdownMenuItem className="gap-2">
-                   Artifact Management
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -138,13 +121,6 @@ export default function Header() {
                     <Link to="/organizer">
                       <DropdownMenuItem className="gap-2">
                         <LayoutDashboard className="w-4 h-4" /> Curator Console
-                      </DropdownMenuItem>
-                    </Link>
-                  )}
-                  {user?.role === 'ADMIN' && (
-                    <Link to="/admin">
-                      <DropdownMenuItem className="gap-2 text-primary font-bold">
-                        <Shield className="w-4 h-4" /> Global Control
                       </DropdownMenuItem>
                     </Link>
                   )}

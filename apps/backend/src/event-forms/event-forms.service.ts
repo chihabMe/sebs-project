@@ -18,15 +18,13 @@ export class EventFormsService {
     if (!event) throw new NotFoundException('Event not found');
     if (event.organizerId !== userId && userRole !== 'ADMIN') throw new ForbiddenException('Unauthorized');
 
-    await this.prisma.$transaction([
-      this.prisma.eventFormQuestion.deleteMany({ where: { eventId } }),
-      this.prisma.eventFormQuestion.createMany({
-        data: dto.questions.map(q => ({
-          ...q,
-          eventId,
-        })),
-      }),
-    ]);
+    await this.prisma.eventFormQuestion.deleteMany({ where: { eventId } });
+    await this.prisma.eventFormQuestion.createMany({
+      data: dto.questions.map(q => ({
+        ...q,
+        eventId,
+      })),
+    });
 
     return this.prisma.eventFormQuestion.findMany({ where: { eventId } });
   }
