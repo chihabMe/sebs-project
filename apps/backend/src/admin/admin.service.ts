@@ -53,7 +53,7 @@ export class AdminService {
 
   async getUsers(query: AdminUsersQueryDto = {}) {
     const args: any = {
-      select: { id: true, email: true, name: true, role: true, isBanned: true, createdAt: true },
+      select: { id: true, email: true, name: true, role: true, isActive: true, isBanned: true, createdAt: true },
       orderBy: { createdAt: 'desc' },
     };
 
@@ -97,13 +97,15 @@ export class AdminService {
       data: {
         ...(data.name ? { name: data.name.trim() } : {}),
         ...(data.role ? { role: data.role } : {}),
+        ...(typeof data.isActive === 'boolean' ? { isActive: data.isActive } : {}),
         ...(typeof data.isBanned === 'boolean' ? { isBanned: data.isBanned } : {}),
       },
-      select: { id: true, email: true, name: true, role: true, isBanned: true, createdAt: true },
+      select: { id: true, email: true, name: true, role: true, isActive: true, isBanned: true, createdAt: true },
     });
 
     this.logAudit('update_user', actorId, updatedUser.id, {
       role: updatedUser.role,
+      isActive: updatedUser.isActive,
       isBanned: updatedUser.isBanned,
     });
     return updatedUser;

@@ -51,7 +51,7 @@ export class AdminController {
   @Patch('approve-event/:id')
   @ApiOperation({ summary: 'Approve an event' })
   async approveEvent(@Param('id', new ParseUUIDPipe()) id: string, @GetUser('id') adminId: string) {
-    const event = await this.adminService.approveEvent(id, adminId);
+    const event = await this.adminService.approveEvent(id);
     return { success: true, message: 'Event approved successfully', data: event };
   }
 

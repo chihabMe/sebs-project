@@ -3,7 +3,7 @@ import { applicationDefault, cert, getApps, initializeApp } from 'firebase-admin
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { randomUUID } from 'crypto';
 
-type ModelName = 'user' | 'event' | 'tag' | 'eventFormQuestion' | 'booking' | 'review';
+type ModelName = 'user' | 'event' | 'tag' | 'eventFormQuestion' | 'booking' | 'review' | 'follow' | 'notification';
 type AnyRecord = Record<string, any>;
 
 const collectionNames: Record<ModelName, string> = {
@@ -13,6 +13,8 @@ const collectionNames: Record<ModelName, string> = {
   eventFormQuestion: 'eventFormQuestions',
   booking: 'bookings',
   review: 'reviews',
+  follow: 'follows',
+  notification: 'notifications',
 };
 
 @Injectable()
@@ -25,6 +27,8 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
   eventFormQuestion = this.createRepository('eventFormQuestion');
   booking = this.createRepository('booking');
   review = this.createRepository('review');
+  follow = this.createRepository('follow');
+  notification = this.createRepository('notification');
 
   async onModuleInit() {
     await this.db.listCollections();
@@ -197,6 +201,7 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
     if (model === 'user') {
       return {
         role: 'USER',
+        isActive: false,
         isBanned: false,
         avatar: null,
         bio: null,
@@ -204,6 +209,9 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
         passwordResetTokenHash: null,
         passwordResetExpiresAt: null,
         passwordResetRequestedAt: null,
+        emailVerificationTokenHash: null,
+        emailVerificationExpiresAt: null,
+        notifyFollowersOnBooking: false,
       };
     }
     if (model === 'event') {
@@ -217,8 +225,9 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
       };
     }
     if (model === 'eventFormQuestion') return { required: true };
-    if (model === 'booking') return { status: 'PENDING', answers: [], createdAt: now, updatedAt: now };
+    if (model === 'booking') return { status: 'PENDING', attended: false, answers: [], createdAt: now, updatedAt: now };
     if (model === 'review') return { createdAt: now };
+    if (model === 'notification') return { read: false, createdAt: now, updatedAt: now };
     return {};
   }
 
@@ -281,9 +290,15 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
     if (model === 'user' && where.passwordResetTokenHash) {
       return this.findFirstByFields(model, { passwordResetTokenHash: where.passwordResetTokenHash });
     }
+    if (model === 'user' && where.emailVerificationTokenHash) {
+      return this.findFirstByFields(model, { emailVerificationTokenHash: where.emailVerificationTokenHash });
+    }
     if (model === 'tag' && where.name) return this.findFirstByFields(model, { name: where.name });
     if ((model === 'booking' || model === 'review') && where.userId_eventId) {
       return this.findFirstByFields(model, where.userId_eventId);
+    }
+    if (model === 'follow' && where.followerId_followingId) {
+      return this.findFirstByFields(model, where.followerId_followingId);
     }
     return null;
   }
@@ -294,6 +309,16 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
         this.deleteMany('booking', { where: { eventId: id } }),
         this.deleteMany('review', { where: { eventId: id } }),
         this.deleteMany('eventFormQuestion', { where: { eventId: id } }),
+        this.deleteMany('notification', { where: { eventId: id } }),
+      ]);
+    }
+
+    if (model === 'user') {
+      await Promise.all([
+        this.deleteMany('follow', { where: { followerId: id } }),
+        this.deleteMany('follow', { where: { followingId: id } }),
+        this.deleteMany('notification', { where: { userId: id } }),
+        this.deleteMany('notification', { where: { actorId: id } }),
       ]);
     }
 

@@ -82,6 +82,10 @@ export const changePasswordSchema = z.object({
   newPassword: strongPasswordSchema,
 });
 
+export const verifyEmailSchema = z.object({
+  token: z.string().min(1),
+});
+
 // TAG
 export const tagCreateSchema = z.object({
   name: z.string().min(2).max(50),
@@ -139,6 +143,7 @@ export const updateProfileSchema = z.object({
   avatar: z.string().url().optional().or(z.literal('')),
   bio: z.string().max(500).optional(),
   tags: z.array(z.string()).optional(), // Array of Tag IDs
+  notifyFollowersOnBooking: z.boolean().optional(),
 });
 
 export const createAdminUserSchema = z.object({
@@ -151,6 +156,7 @@ export const createAdminUserSchema = z.object({
 export const updateAdminUserSchema = z.object({
   name: z.string().min(2).max(100).optional(),
   role: roleSchema.optional(),
+  isActive: z.boolean().optional(),
   isBanned: z.boolean().optional(),
 });
 
@@ -163,6 +169,7 @@ export type AdminLoginInput = z.infer<typeof adminLoginSchema>;
 export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
 export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
 export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
+export type VerifyEmailInput = z.infer<typeof verifyEmailSchema>;
 export type TagCreateInput = z.infer<typeof tagCreateSchema>;
 export type EventCreateInput = z.infer<typeof eventCreateSchema>;
 export type BookingCreateInput = z.infer<typeof bookingCreateSchema>;
@@ -188,11 +195,37 @@ export interface UserDto {
   email: string;
   name: string;
   role: Role;
+  isActive?: boolean;
   isBanned?: boolean;
   avatar?: string | null;
   bio?: string | null;
   tags?: TagDto[];
+  notifyFollowersOnBooking?: boolean;
   createdAt?: string | Date;
+}
+
+export interface UserSearchResultDto {
+  id: string;
+  name: string;
+  avatar?: string | null;
+  bio?: string | null;
+  role: Role;
+  isFollowing: boolean;
+}
+
+export interface FollowNotificationDto {
+  id: string;
+  userId: string;
+  actorId: string;
+  actorName: string;
+  actorAvatar?: string | null;
+  type: 'FOLLOWING_BOOKED_EVENT';
+  title: string;
+  message: string;
+  eventId?: string | null;
+  eventTitle?: string | null;
+  createdAt: string | Date;
+  read: boolean;
 }
 
 export interface AuthResponse {
@@ -259,7 +292,7 @@ export interface AdminPendingEventsQueryParams {
   limit?: number;
 }
 
-export interface AdminUserListItem extends Pick<UserDto, 'id' | 'email' | 'name' | 'role' | 'isBanned' | 'createdAt'> {}
+export interface AdminUserListItem extends Pick<UserDto, 'id' | 'email' | 'name' | 'role' | 'isActive' | 'isBanned' | 'createdAt'> {}
 
 export interface AdminPendingEventItem extends Omit<EventDto, 'organizer'> {
   organizer?: {

@@ -1,0 +1,11 @@
+export const DEFAULT_PAGE = 1;
+export const DEFAULT_LIMIT = 12;
+
+export const PAGINATION_LIMITS = {
+  EVENTS_BROWSE: 12,
+  REVIEWS: 6,
+  USERS_SEARCH: 12,
+  FOLLOWING: 6,
+  ATTENDEES: 20,
+  APPLICATIONS: 20,
+} as const;

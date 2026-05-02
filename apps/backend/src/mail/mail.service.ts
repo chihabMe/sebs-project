@@ -89,6 +89,40 @@ export class MailService {
     return this.sendEmail(user.email, subject, text);
   }
 
+  async sendVerificationEmail(user: any, verifyUrl: string) {
+    const subject = 'Verify your Eventify account';
+    const text = `Hi ${user.name},\n\nPlease verify your email address by clicking this link: ${verifyUrl}\n\nThis link expires in 24 hours.`;
+    const html = `
+      <div style="font-family: sans-serif; color: #32294f; max-width: 600px; margin: 0 auto; border: 1px solid #66000010; padding: 40px; border-radius: 20px;">
+        <h1 style="color: #3e0000; font-size: 24px;">Verify your email</h1>
+        <p>Hi <strong>${user.name}</strong>,</p>
+        <p>Please click the button below to verify your email address:</p>
+        <a href="${verifyUrl}" style="display: inline-block; background: #660000; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; margin: 24px 0;">Verify Email</a>
+      </div>
+    `;
+    return this.sendEmail(user.email, subject, text, html);
+  }
+
+  async sendBookingCancelled(user: any, event: any) {
+    const subject = `Booking Cancelled: ${event.title}`;
+    const text = `Hi ${user.name},\n\nYour booking for ${event.title} on ${new Date(event.date).toLocaleDateString()} has been cancelled.\n\nLocation: ${event.location}`;
+    return this.sendEmail(user.email, subject, text);
+  }
+
+  async sendEventUpdated(user: any, event: any, previous: { date: Date; location: string }) {
+    const subject = `Event Updated: ${event.title}`;
+    const text = [
+      `Hi ${user.name},`,
+      '',
+      `The event "${event.title}" has been updated.`,
+      `Previous date: ${new Date(previous.date).toLocaleString()}`,
+      `New date: ${new Date(event.date).toLocaleString()}`,
+      `Previous location: ${previous.location}`,
+      `New location: ${event.location}`,
+    ].join('\n');
+    return this.sendEmail(user.email, subject, text);
+  }
+
   async sendPasswordResetEmail(user: any, resetUrl: string) {
     const subject = 'Reset your Eventify password';
     const text = `Hi ${user.name},\n\nWe received a request to reset your Eventify password.\n\nOpen this link to set a new password: ${resetUrl}\n\nThis link expires in 30 minutes. If you did not request this, you can ignore this email.`;

@@ -15,6 +15,7 @@
     "docker:dev:up": "docker compose -f docker-compose.dev.yml up -d",
     "docker:dev:down": "docker compose -f docker-compose.dev.yml down",
     "docker:dev:logs": "docker compose -f docker-compose.dev.yml logs -f",
+    "prisma:studio": "bash scripts/run-prisma-studio.sh",
     "openapi:generate": "pnpm --filter @sebs/backend openapi:generate",
     "api:types:generate": "node scripts/generate-frontend-api-contract.mjs",
     "api:contract:check": "node scripts/check-frontend-api-contract.mjs",

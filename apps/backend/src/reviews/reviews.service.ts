@@ -2,6 +2,7 @@ import { Injectable, NotFoundException, BadRequestException, ForbiddenException 
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateReviewDto } from './dto/review.dto';
 import { ReviewsQueryDto } from './dto/reviews-query.dto';
+import { DEFAULT_PAGE, PAGINATION_LIMITS } from '../common/constants/pagination.constants';
 
 @Injectable()
 export class ReviewsService {
@@ -57,10 +58,10 @@ export class ReviewsService {
       orderBy: { createdAt: 'desc' }
     };
 
-    if (query.page && query.limit) {
-      args.skip = (query.page - 1) * query.limit;
-      args.take = query.limit;
-    }
+    const page = query.page ?? DEFAULT_PAGE;
+    const limit = query.limit ?? PAGINATION_LIMITS.REVIEWS;
+    args.skip = (page - 1) * limit;
+    args.take = limit;
 
     const reviews = await this.prisma.review.findMany(args);
 
@@ -75,7 +76,13 @@ export class ReviewsService {
       stats: {
         averageRating: aggregations._avg?.rating || 0,
         totalReviews: aggregations._count?.id || 0
-      }
+      },
+      meta: {
+        page,
+        limit,
+        total: aggregations._count?.id || 0,
+        totalPages: Math.max(1, Math.ceil((aggregations._count?.id || 0) / limit)),
+      },
     };
   }
 

@@ -10,13 +10,19 @@ describe('EventsService', () => {
       update: jest.fn(),
       delete: jest.fn(),
     },
+    booking: {
+      findMany: jest.fn(),
+    },
+  } as any;
+  const mailService = {
+    sendEventUpdated: jest.fn().mockResolvedValue(true),
   } as any;
 
   let service: EventsService;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    service = new EventsService(prisma);
+    service = new EventsService(prisma, mailService);
   });
 
   it('create should auto-approve admin-created events', async () => {
@@ -76,5 +82,32 @@ describe('EventsService', () => {
 
     await service.remove('e1', 'admin-user', 'ADMIN');
     expect(prisma.event.delete).toHaveBeenCalledWith({ where: { id: 'e1' } });
+  });
+
+  it('update should notify confirmed attendees when date changes', async () => {
+    prisma.event.findUnique.mockResolvedValue({
+      id: 'e1',
+      organizerId: 'owner-id',
+      isApproved: true,
+      date: new Date('2026-05-10T10:00:00.000Z'),
+      location: 'Old Hall',
+    });
+    prisma.event.update.mockResolvedValue({
+      id: 'e1',
+      title: 'Event',
+      date: new Date('2026-05-11T10:00:00.000Z'),
+      location: 'Old Hall',
+    });
+    prisma.booking.findMany.mockResolvedValue([
+      { id: 'b1', user: { id: 'u1', name: 'User', email: 'user@example.com' } },
+    ]);
+
+    await service.update('e1', 'owner-id', 'ORGANIZER', { date: '2026-05-11T10:00:00.000Z' });
+
+    expect(prisma.booking.findMany).toHaveBeenCalledWith({
+      where: { eventId: 'e1', status: 'CONFIRMED' },
+      include: { user: true },
+    });
+    expect(mailService.sendEventUpdated).toHaveBeenCalled();
   });
 });

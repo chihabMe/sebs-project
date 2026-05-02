@@ -10,19 +10,14 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { GetUser } from '../auth/decorators/get-user.decorator';
 import { ApiTags, ApiOperation, ApiConsumes } from '@nestjs/swagger';
-import { diskStorage } from 'multer';
-import { extname, join } from 'path';
+import { extname } from 'path';
+import { memoryStorage } from 'multer';
 import { UpdateEventStatusDto } from './dto/update-event-status.dto';
 import { EventsQueryDto } from './dto/events-query.dto';
+import { CloudinaryService } from '../common/services/cloudinary.service';
 
 const imageUploadOptions = {
-  storage: diskStorage({
-    destination: join(process.cwd(), 'uploads'),
-    filename: (req, file, cb) => {
-      const randomName = Array(32).fill(null).map(() => (Math.round(Math.random() * 16)).toString(16)).join('');
-      return cb(null, `${Date.now()}-${randomName}${extname(file.originalname)}`);
-    }
-  }),
+  storage: memoryStorage(),
   limits: {
     fileSize: 5 * 1024 * 1024,
   },
@@ -42,7 +37,10 @@ const imageUploadOptions = {
 @ApiTags('Events')
 @Controller('events')
 export class EventsController {
-  constructor(private readonly eventsService: EventsService) {}
+  constructor(
+    private readonly eventsService: EventsService,
+    private readonly cloudinaryService: CloudinaryService,
+  ) {}
 
   @Post()
   @UseGuards(AuthGuard, RolesGuard)
@@ -56,16 +54,16 @@ export class EventsController {
     @Body() createEventDto: CreateEventDto,
     @UploadedFile() file?: Express.Multer.File
   ) {
-    const imagePath = file ? `/uploads/${file.filename}` : undefined;
-    const event = await this.eventsService.create(userId, userRole, createEventDto, imagePath);
+    const imageUrl = file ? await this.cloudinaryService.uploadImage(file, 'eventify/events') : undefined;
+    const event = await this.eventsService.create(userId, userRole, createEventDto, imageUrl);
     return { success: true, message: 'Event created successfully', data: event };
   }
 
   @Get()
   @ApiOperation({ summary: 'Get list of events (Public)' })
   async findAll(@Query() query: EventsQueryDto) {
-    const events = await this.eventsService.findAll(query);
-    return { success: true, data: events };
+    const result = await this.eventsService.findAll(query);
+    return { success: true, data: result.data, meta: result.meta };
   }
 
   @Get('recommended')
@@ -118,8 +116,8 @@ export class EventsController {
     @Body() updateEventDto: UpdateEventDto,
     @UploadedFile() file?: Express.Multer.File
   ) {
-    const imagePath = file ? `/uploads/${file.filename}` : undefined;
-    const event = await this.eventsService.update(id, userId, userRole, updateEventDto, imagePath);
+    const imageUrl = file ? await this.cloudinaryService.uploadImage(file, 'eventify/events') : undefined;
+    const event = await this.eventsService.update(id, userId, userRole, updateEventDto, imageUrl);
     return { success: true, message: 'Event updated successfully', data: event };
   }
 

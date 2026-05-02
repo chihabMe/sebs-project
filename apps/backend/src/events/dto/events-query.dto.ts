@@ -37,4 +37,9 @@ export class EventsQueryDto extends PaginationQueryDto {
   @IsOptional()
   @IsEnum(EventStatus)
   status?: EventStatusType;
+
+  @ApiPropertyOptional({ description: 'Organizer user UUID' })
+  @IsOptional()
+  @IsUUID()
+  organizerId?: string;
 }

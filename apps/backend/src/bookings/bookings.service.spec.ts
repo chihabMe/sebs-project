@@ -3,12 +3,16 @@ import { BookingsService } from './bookings.service';
 
 describe('BookingsService', () => {
   const prisma = {
+    user: { findUnique: jest.fn() },
+    follow: { findMany: jest.fn() },
+    notification: { createMany: jest.fn() },
     event: { findUnique: jest.fn() },
     booking: { findUnique: jest.fn(), create: jest.fn(), update: jest.fn(), findMany: jest.fn() },
   } as any;
   const mailService = {
     sendBookingRequestReceived: jest.fn().mockResolvedValue(true),
     sendBookingConfirmation: jest.fn().mockResolvedValue(true),
+    sendBookingCancelled: jest.fn().mockResolvedValue(true),
   } as any;
   const ticketsService = { generateTicketPDF: jest.fn().mockResolvedValue('/uploads/tickets/t1.pdf') } as any;
 
@@ -16,6 +20,13 @@ describe('BookingsService', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    prisma.user.findUnique.mockResolvedValue({
+      id: 'u1',
+      name: 'User',
+      notifyFollowersOnBooking: false,
+    });
+    prisma.follow.findMany.mockResolvedValue([]);
+    prisma.notification.createMany.mockResolvedValue({ count: 0 });
     service = new BookingsService(prisma, mailService, ticketsService);
   });
 
@@ -127,5 +138,67 @@ describe('BookingsService', () => {
       isBooked: true,
       status: 'PENDING',
     });
+  });
+
+  it('checkIn should mark a confirmed booking as attended', async () => {
+    prisma.booking.findUnique.mockResolvedValue({
+      id: 'b1',
+      userId: 'u1',
+      eventId: 'e1',
+      status: 'CONFIRMED',
+      attended: false,
+    });
+    prisma.booking.update.mockResolvedValue({
+      id: 'b1',
+      status: 'CONFIRMED',
+      attended: true,
+    });
+
+    const result = await service.checkIn('e1', 'u1');
+
+    expect(result.attended).toBe(true);
+    expect(prisma.booking.update).toHaveBeenCalledWith({
+      where: { id: 'b1' },
+      data: { attended: true },
+    });
+  });
+
+  it('checkIn should be idempotent when already attended', async () => {
+    prisma.booking.findUnique.mockResolvedValue({
+      id: 'b1',
+      userId: 'u1',
+      eventId: 'e1',
+      status: 'CONFIRMED',
+      attended: true,
+    });
+
+    const result = await service.checkIn('e1', 'u1');
+
+    expect(result.attended).toBe(true);
+    expect(prisma.booking.update).not.toHaveBeenCalled();
+  });
+
+  it('checkIn should reject missing or unconfirmed bookings', async () => {
+    prisma.booking.findUnique.mockResolvedValueOnce(null);
+    await expect(service.checkIn('e1', 'u1')).rejects.toBeInstanceOf(NotFoundException);
+
+    prisma.booking.findUnique.mockResolvedValueOnce({ id: 'b1', status: 'PENDING', attended: false });
+    await expect(service.checkIn('e1', 'u1')).rejects.toBeInstanceOf(BadRequestException);
+  });
+
+  it('cancel should send cancellation email', async () => {
+    prisma.booking.findUnique.mockResolvedValue({
+      id: 'b1',
+      userId: 'u1',
+      status: 'CONFIRMED',
+      user: { id: 'u1', name: 'User', email: 'u@example.com' },
+      event: { id: 'e1', title: 'Event', date: new Date(), location: 'Online' },
+    });
+    prisma.booking.update.mockResolvedValue({ id: 'b1', status: 'CANCELLED' });
+
+    const result = await service.cancel('b1', 'u1');
+
+    expect(result.status).toBe('CANCELLED');
+    expect(mailService.sendBookingCancelled).toHaveBeenCalled();
   });
 });

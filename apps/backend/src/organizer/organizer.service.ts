@@ -98,13 +98,14 @@ export class OrganizerService {
       take: limit,
     };
 
-    const [items, total, pending, confirmed, rejected, cancelled] = await Promise.all([
+    const [items, total, pending, confirmed, rejected, cancelled, attended] = await Promise.all([
       this.prisma.booking.findMany(args),
       this.prisma.booking.count({ where }),
       this.prisma.booking.count({ where: { eventId, status: BookingStatus.PENDING } }),
       this.prisma.booking.count({ where: { eventId, status: BookingStatus.CONFIRMED } }),
       this.prisma.booking.count({ where: { eventId, status: BookingStatus.REJECTED } }),
       this.prisma.booking.count({ where: { eventId, status: BookingStatus.CANCELLED } }),
+      this.prisma.booking.count({ where: { eventId, status: BookingStatus.CONFIRMED, attended: true } }),
     ]);
 
     return {
@@ -120,6 +121,7 @@ export class OrganizerService {
         confirmed,
         rejected,
         cancelled,
+        attended,
       },
     };
   }

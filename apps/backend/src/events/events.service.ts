@@ -3,10 +3,12 @@ import { type EventStatus } from '@sebs/shared';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateEventDto, UpdateEventDto } from './dto/event.dto';
 import { EventsQueryDto } from './dto/events-query.dto';
+import { MailService } from '../mail/mail.service';
+import { DEFAULT_PAGE, PAGINATION_LIMITS } from '../common/constants/pagination.constants';
 
 @Injectable()
 export class EventsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService, private mailService: MailService) {}
 
   async create(userId: string, userRole: string, dto: CreateEventDto, image?: string) {
     const { tags, ...restData } = dto;
@@ -31,7 +33,7 @@ export class EventsService {
   }
 
   async findAll(query: EventsQueryDto) {
-    const { search, category, date, tag, status, page, limit } = query;
+    const { search, category, date, tag, status, page, limit, organizerId } = query;
     const where: any = { isApproved: true };
 
     if (search) {
@@ -55,6 +57,10 @@ export class EventsService {
       where.status = status;
     }
 
+    if (organizerId) {
+      where.organizerId = organizerId;
+    }
+
     if (date) {
       const filterDate = new Date(date);
       if (!isNaN(filterDate.getTime())) {
@@ -73,12 +79,25 @@ export class EventsService {
       }
     };
 
-    if (page && limit) {
-      args.skip = (page - 1) * limit;
-      args.take = limit;
-    }
+    const safePage = page ?? DEFAULT_PAGE;
+    const safeLimit = limit ?? PAGINATION_LIMITS.EVENTS_BROWSE;
+    args.skip = (safePage - 1) * safeLimit;
+    args.take = safeLimit;
 
-    return this.prisma.event.findMany(args);
+    const [items, total] = await Promise.all([
+      this.prisma.event.findMany(args),
+      this.prisma.event.count({ where }),
+    ]);
+
+    return {
+      data: items,
+      meta: {
+        page: safePage,
+        limit: safeLimit,
+        total,
+        totalPages: Math.max(1, Math.ceil(total / safeLimit)),
+      },
+    };
   }
 
   async findOne(id: string) {
@@ -126,8 +145,13 @@ export class EventsService {
       throw new ForbiddenException('You are not authorized to update this event');
     }
 
+    const previousSnapshot = {
+      date: new Date(event.date),
+      location: event.location,
+    };
+
     const { tags, ...restData } = dto;
-    return this.prisma.event.update({
+    const updatedEvent = await this.prisma.event.update({
       where: { id: id },
       data: {
         ...restData,
@@ -143,6 +167,24 @@ export class EventsService {
         organizer: { select: { id: true, name: true } }
       }
     });
+
+    const didDateChange = dto.date ? new Date(dto.date).getTime() !== previousSnapshot.date.getTime() : false;
+    const didLocationChange = typeof dto.location === 'string' && dto.location !== previousSnapshot.location;
+
+    if (didDateChange || didLocationChange) {
+      const confirmedBookings = await this.prisma.booking.findMany({
+        where: { eventId: id, status: 'CONFIRMED' },
+        include: { user: true },
+      });
+
+      await Promise.all(
+        confirmedBookings.map((booking: any) =>
+          this.mailService.sendEventUpdated(booking.user, updatedEvent, previousSnapshot).catch(() => undefined),
+        ),
+      );
+    }
+
+    return updatedEvent;
   }
 
   async remove(id: string, userId: string, userRole: string) {

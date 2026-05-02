@@ -9,6 +9,7 @@ describe('AuthService password reset', () => {
     user: {
       findUnique: jest.fn(),
       update: jest.fn(),
+      create: jest.fn(),
     },
   };
   const jwtService = {
@@ -23,6 +24,8 @@ describe('AuthService password reset', () => {
   };
   const mailService = {
     sendPasswordResetEmail: jest.fn(),
+    sendWelcomeEmail: jest.fn().mockResolvedValue(true),
+    sendVerificationEmail: jest.fn().mockResolvedValue(true),
   };
 
   let service: AuthService;
@@ -173,5 +176,22 @@ describe('AuthService password reset', () => {
         passwordResetRequestedAt: null,
       },
     });
+  });
+
+  it('register should send welcome email', async () => {
+    const bcrypt = await import('bcryptjs');
+    jest.spyOn(bcrypt, 'hash').mockResolvedValue('hashed-password' as never);
+    prisma.user.findUnique.mockResolvedValue(null);
+    prisma.user.create.mockResolvedValue({
+      id: 'u1',
+      email: 'user@example.com',
+      name: 'User',
+      role: 'USER',
+    });
+    jwtService.signAsync.mockResolvedValue('token');
+
+    await service.register({ email: 'user@example.com', password: 'StrongPass123!', name: 'User', role: 'USER' });
+
+    expect(mailService.sendWelcomeEmail).toHaveBeenCalledWith(expect.objectContaining({ id: 'u1' }));
   });
 });

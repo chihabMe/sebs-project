@@ -40,18 +40,20 @@ describe('OrganizerService', () => {
 
   it('getEventAttendees should return paginated payload with summary', async () => {
     prisma.event.findUnique.mockResolvedValue({ id: 'e1', organizerId: 'owner-id' });
-    prisma.booking.findMany.mockResolvedValue([{ id: 'b1' }]);
+    prisma.booking.findMany.mockResolvedValue([{ id: 'b1', attended: true }]);
     prisma.booking.count
       .mockResolvedValueOnce(1)
       .mockResolvedValueOnce(0)
       .mockResolvedValueOnce(1)
       .mockResolvedValueOnce(0)
-      .mockResolvedValueOnce(0);
+      .mockResolvedValueOnce(0)
+      .mockResolvedValueOnce(1);
 
     const result = await service.getEventAttendees('e1', 'owner-id', 'ORGANIZER', { page: 1, limit: 10 });
     expect(result.items).toHaveLength(1);
     expect(result.meta.total).toBe(1);
     expect(result.summary.confirmed).toBe(1);
+    expect(result.summary.attended).toBe(1);
   });
 
   it('updateBookingStatus should send confirmation email when confirmed', async () => {

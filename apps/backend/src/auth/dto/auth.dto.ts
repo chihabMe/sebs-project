@@ -63,3 +63,9 @@ export class ChangePasswordDto {
   @Matches(strongPasswordPattern, { message: strongPasswordMessage })
   newPassword: string;
 }
+
+export class VerifyEmailDto {
+  @ApiProperty({ example: 'a-secure-verification-token' })
+  @IsString()
+  token: string;
+}

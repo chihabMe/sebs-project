@@ -13,7 +13,7 @@ import {
 import { Throttle } from '@nestjs/throttler';
 import { Response, Request } from 'express';
 import { AuthService } from './auth.service';
-import { RegisterDto, LoginDto, ForgotPasswordDto, ResetPasswordDto, ChangePasswordDto } from './dto/auth.dto';
+import { RegisterDto, LoginDto, ForgotPasswordDto, ResetPasswordDto, ChangePasswordDto, VerifyEmailDto } from './dto/auth.dto';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { AuthGuard } from './guards/auth.guard';
 import { RolesGuard } from './guards/roles.guard';
@@ -46,11 +46,10 @@ export class AuthController {
   @Post('register')
   @ApiOperation({ summary: 'Register a new user' })
   async register(@Body() dto: RegisterDto, @Res() res: Response) {
-    const { user, accessToken, refreshToken } = await this.authService.register(dto);
-    this.setTokensInCookies(res, accessToken, refreshToken);
+    const { user } = await this.authService.register(dto);
     return res.status(201).json({
       success: true,
-      message: 'User registered successfully',
+      message: 'User registered successfully. Please verify your email.',
       data: {
         user: { 
           id: user.id, 
@@ -61,7 +60,6 @@ export class AuthController {
           bio: user.bio,
           tags: []
         },
-        token: accessToken,
       },
     });
   }
@@ -112,6 +110,17 @@ export class AuthController {
       success: true,
       message: 'Password reset successfully. Please log in with your new password.',
     });
+  }
+
+  @Post('verify-email')
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
+  @ApiOperation({ summary: 'Verify email with a token' })
+  async verifyEmail(@Body() dto: VerifyEmailDto) {
+    await this.authService.verifyEmail(dto.token);
+    return {
+      success: true,
+      message: 'Email verified successfully. You can now log in.',
+    };
   }
 
   @Post('change-password')

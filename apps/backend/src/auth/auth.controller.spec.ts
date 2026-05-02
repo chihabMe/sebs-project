@@ -27,19 +27,15 @@ describe('AuthController', () => {
     controller = new AuthController(authService);
   });
 
-  it('register should set tokens in httpOnly cookies and return payload', async () => {
+  it('register should return success payload without tokens', async () => {
     authService.register.mockResolvedValue({
       user: { id: 'u1', email: 'user@example.com', name: 'User', role: 'USER', avatar: null, bio: null },
-      accessToken: 'access-token',
-      refreshToken: 'refresh-token',
     });
     const res = createRes();
 
     await controller.register({ email: 'user@example.com', password: 'StrongPass123!', name: 'User' }, res);
 
-    expect(res.cookie).toHaveBeenCalledTimes(2);
-    expect(res.cookie.mock.calls[0][0]).toBe('accessToken');
-    expect(res.cookie.mock.calls[1][0]).toBe('refreshToken');
+    expect(res.cookie).toHaveBeenCalledTimes(0);
     expect(res.status).toHaveBeenCalledWith(201);
   });
 

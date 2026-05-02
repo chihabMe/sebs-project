@@ -12,8 +12,11 @@ type TestUser = {
   role: string;
   avatar: string | null;
   bio: string | null;
+  isActive: boolean;
   isBanned: boolean;
   tags: Array<{ id: string; name: string }>;
+  emailVerificationTokenHash: string | null;
+  emailVerificationExpiresAt: Date | null;
 };
 
 const createPrismaMock = () => {
@@ -28,6 +31,9 @@ const createPrismaMock = () => {
         if (where.id) {
           return users.find((user) => user.id === where.id) ?? null;
         }
+        if (where.emailVerificationTokenHash) {
+          return users.find((user) => user.emailVerificationTokenHash === where.emailVerificationTokenHash) ?? null;
+        }
         return null;
       }),
       create: jest.fn(async ({ data }: any) => {
@@ -39,10 +45,20 @@ const createPrismaMock = () => {
           role: data.role,
           avatar: null,
           bio: null,
+          isActive: data.isActive ?? true,
           isBanned: false,
           tags: [],
+          emailVerificationTokenHash: data.emailVerificationTokenHash ?? null,
+          emailVerificationExpiresAt: data.emailVerificationExpiresAt ?? null,
         };
         users.push(user);
+        return user;
+      }),
+      update: jest.fn(async ({ where, data }: any) => {
+        const user = users.find((u) => u.id === where.id);
+        if (user) {
+          Object.assign(user, data);
+        }
         return user;
       }),
     },
@@ -102,16 +118,14 @@ describe('AuthController (e2e)', () => {
       {
         name: 'John Doe',
         email,
-        password: 'password123',
+        password: 'StrongPassword123!',
       },
       res,
     );
 
     expect(res.status).toHaveBeenCalledWith(201);
     expect(res.body.data.user.email).toBe(email);
-    expect(res.body.data.token).toBeDefined();
-    expect(res.cookies.accessToken).toBeDefined();
-    expect(res.cookies.refreshToken).toBeDefined();
+    expect(res.body.data.token).toBeUndefined();
   });
 
   it('/api/auth/login (POST)', async () => {
@@ -121,16 +135,25 @@ describe('AuthController (e2e)', () => {
       {
         name: 'Jane Doe',
         email,
-        password: 'password123',
+        password: 'StrongPassword123!',
       },
       registerRes,
     );
+
+    // Get the created user from Prisma mock to get the token hash (or just manually verify them)
+    // For simplicity, we can mock their isActive to true by updating the user directly
+    const prisma = moduleFixture.get(PrismaService) as any;
+    const user = await prisma.user.findUnique({ where: { email } });
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { isActive: true },
+    });
 
     const loginRes = createMockResponse();
     await authController.login(
       {
         email,
-        password: 'password123',
+        password: 'StrongPassword123!',
       },
       loginRes,
     );

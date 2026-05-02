@@ -54,6 +54,9 @@ export class AuthService {
     }
 
     const hashedPassword = await bcrypt.hash(dto.password, 12);
+    const token = randomBytes(32).toString('hex');
+    const tokenHash = this.hashResetToken(token);
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
 
     const user = await this.prisma.user.create({
       data: {
@@ -61,13 +64,19 @@ export class AuthService {
         password: hashedPassword,
         name: dto.name.trim(),
         role: dto.role || 'USER',
+        isActive: false,
+        emailVerificationTokenHash: tokenHash,
+        emailVerificationExpiresAt: expiresAt,
       },
     });
 
+    const verifyUrl = `${this.getFrontendUrl()}/verify-email?token=${encodeURIComponent(token)}`;
+    this.mailService.sendVerificationEmail(user, verifyUrl).catch(() => undefined);
+    this.mailService.sendWelcomeEmail(user).catch(() => undefined);
+
     this.logger.log(`registration_succeeded userId=${user.id} email=${user.email} role=${user.role}`);
 
-    const tokens = await this.getTokens(user.id, user.role);
-    return { user, ...tokens };
+    return { user };
   }
 
   async login(dto: LoginDto) {
@@ -84,6 +93,11 @@ export class AuthService {
     if (user.isBanned) {
       this.logger.warn(`login_failed reason=banned_user userId=${user.id} email=${email}`);
       throw new ForbiddenException('Your account has been banned');
+    }
+
+    if (user.isActive === false) {
+      this.logger.warn(`login_failed reason=email_not_verified email=${email}`);
+      throw new UnauthorizedException('Email not verified. Please check your email to verify your account.');
     }
 
     const isMatch = await bcrypt.compare(dto.password, user.password);
@@ -179,6 +193,26 @@ export class AuthService {
     });
 
     this.logger.log(`password_change_succeeded userId=${user.id} email=${user.email}`);
+  }
+
+  async verifyEmail(token: string) {
+    const tokenHash = this.hashResetToken(token);
+    const user = await this.prisma.user.findUnique({ where: { emailVerificationTokenHash: tokenHash } });
+
+    if (!user || !user.emailVerificationExpiresAt || new Date(user.emailVerificationExpiresAt) < new Date()) {
+      throw new BadRequestException('Invalid or expired verification link');
+    }
+
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        isActive: true,
+        emailVerificationTokenHash: null,
+        emailVerificationExpiresAt: null,
+      },
+    });
+
+    this.logger.log(`email_verified userId=${user.id} email=${user.email}`);
   }
 
   async refresh(refreshToken: string) {

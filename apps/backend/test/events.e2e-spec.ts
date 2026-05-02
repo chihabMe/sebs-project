@@ -67,6 +67,13 @@ const createPrismaMock = () => {
         users.push(user);
         return user;
       }),
+      update: jest.fn(async ({ where, data }: any) => {
+        const user = users.find((u) => u.id === where.id);
+        if (user) {
+          Object.assign(user, data);
+        }
+        return user;
+      }),
     },
     event: {
       create: jest.fn(async ({ data }: any) => {
@@ -99,6 +106,13 @@ const createPrismaMock = () => {
           filtered = filtered.filter((event) => event.isApproved === where.isApproved);
         }
         return filtered;
+      }),
+      count: jest.fn(async ({ where }: any) => {
+        let filtered = [...events];
+        if (typeof where?.isApproved === 'boolean') {
+          filtered = filtered.filter((event) => event.isApproved === where.isApproved);
+        }
+        return filtered.length;
       }),
       findUnique: jest.fn(async ({ where }: any) => {
         return events.find((event) => event.id === where.id) ?? null;
@@ -153,13 +167,29 @@ describe('EventsController (e2e)', () => {
       {
         name: 'Event Organizer',
         email,
-        password: 'password123',
+        password: 'StrongPassword123!',
         role: 'ORGANIZER',
       },
       res,
     );
 
-    organizerId = res.body.data.user.id;
+    const prisma = moduleFixture.get(PrismaService) as any;
+    const user = await prisma.user.findUnique({ where: { email } });
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { isActive: true },
+    });
+
+    const loginRes = createMockResponse();
+    await authController.login(
+      {
+        email,
+        password: 'StrongPassword123!',
+      },
+      loginRes,
+    );
+
+    organizerId = loginRes.body.data.user.id;
   });
 
   afterAll(async () => {

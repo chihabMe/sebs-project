@@ -52,5 +52,10 @@ export class UpdateUserByAdminDto {
   @ApiProperty({ required: false, example: true })
   @IsOptional()
   @IsBoolean()
+  isActive?: boolean;
+
+  @ApiProperty({ required: false, example: true })
+  @IsOptional()
+  @IsBoolean()
   isBanned?: boolean;
 }
