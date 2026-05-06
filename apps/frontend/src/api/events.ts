@@ -1,10 +1,14 @@
 import { api } from './client';
-import { ApiResponse, EventDto, EventStatus } from '@sebs/shared';
+import { ApiResponse, EventDto, EventStatus, PaginationMeta } from '@sebs/shared';
 
 export interface EventQueryParams {
   search?: string;
   category?: string;
   date?: string;
+  tag?: string;
+  organizerId?: string;
+  page?: number;
+  limit?: number;
 }
 
 export interface OrganizerEventFilters {
@@ -17,8 +21,11 @@ export interface OrganizerEventFilters {
 }
 
 export const getEvents = async (params?: EventQueryParams) => {
-  const response = await api.get<ApiResponse<EventDto[]>>('/events', { params });
-  return response.data.data;
+  const response = await api.get<ApiResponse<EventDto[]> & { meta?: PaginationMeta }>('/events', { params });
+  return {
+    data: response.data.data || [],
+    meta: response.data.meta,
+  };
 };
 
 export const getEvent = async (id: string) => {
@@ -37,20 +44,14 @@ export const getMyEvents = async () => {
 };
 
 export const createEvent = async (formData: FormData) => {
-  const response = await api.post<ApiResponse<EventDto>>('/events', formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    },
-  });
+  // Let Axios/browser set multipart boundary automatically.
+  const response = await api.post<ApiResponse<EventDto>>('/events', formData);
   return response.data;
 };
 
 export const updateEvent = async (id: string, formData: FormData) => {
-  const response = await api.patch<ApiResponse<EventDto>>(`/events/${id}`, formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    },
-  });
+  // Let Axios/browser set multipart boundary automatically.
+  const response = await api.patch<ApiResponse<EventDto>>(`/events/${id}`, formData);
   return response.data;
 };
 

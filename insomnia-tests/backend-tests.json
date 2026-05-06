@@ -1,0 +1,647 @@
+{
+  "_type": "export",
+  "__export_format": 4,
+  "__export_date": "2026-04-30T13:00:00.000Z",
+  "__export_source": "codex.gpt-5",
+  "resources": [
+    {
+      "_id": "wrk_eventify",
+      "_type": "workspace",
+      "name": "Eventify API (Comprehensive)",
+      "description": "Comprehensive Eventify API test collection covering all routes and user scenarios.",
+      "scope": "collection"
+    },
+    {
+      "_id": "env_eventify_base",
+      "_type": "environment",
+      "parentId": "wrk_eventify",
+      "name": "Base Environment",
+      "data": {
+        "base_url": "https://eventify-api-dev.local.home/api",
+        "event_id": "",
+        "booking_id": "",
+        "user_id": "",
+        "organizer_event_id": "",
+        "tag_id": "",
+        "review_id": "",
+        "admin_email": "admin@sebs.com",
+        "admin_password": "password123",
+        "user_email": "user@example.com",
+        "user_password": "StrongPass123!",
+        "organizer_email": "organizer@example.com",
+        "organizer_password": "StrongPass123!"
+      },
+      "color": null,
+      "isPrivate": false,
+      "metaSortKey": 1
+    },
+    {
+      "_id": "fld_auth",
+      "_type": "request_group",
+      "parentId": "wrk_eventify",
+      "name": "1. Authentication",
+      "description": "",
+      "metaSortKey": 10
+    },
+    {
+      "_id": "req_register",
+      "_type": "request",
+      "parentId": "fld_auth",
+      "name": "Register",
+      "method": "POST",
+      "url": "{{ base_url }}/auth/register",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Test User\",\n  \"email\": \"{{ user_email }}\",\n  \"password\": \"{{ user_password }}\",\n  \"role\": \"USER\"\n}"
+      },
+      "headers": [{ "name": "Content-Type", "value": "application/json" }],
+      "metaSortKey": 11
+    },
+    {
+      "_id": "req_login",
+      "_type": "request",
+      "parentId": "fld_auth",
+      "name": "Login",
+      "method": "POST",
+      "url": "{{ base_url }}/auth/login",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"email\": \"{{ user_email }}\",\n  \"password\": \"{{ user_password }}\"\n}"
+      },
+      "headers": [{ "name": "Content-Type", "value": "application/json" }],
+      "metaSortKey": 12
+    },
+    {
+      "_id": "req_admin_login",
+      "_type": "request",
+      "parentId": "fld_auth",
+      "name": "Admin Login",
+      "method": "POST",
+      "url": "{{ base_url }}/auth/admin/login",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"email\": \"{{ admin_email }}\",\n  \"password\": \"{{ admin_password }}\"\n}"
+      },
+      "headers": [{ "name": "Content-Type", "value": "application/json" }],
+      "metaSortKey": 13
+    },
+    {
+      "_id": "req_refresh",
+      "_type": "request",
+      "parentId": "fld_auth",
+      "name": "Refresh Token",
+      "method": "POST",
+      "url": "{{ base_url }}/auth/refresh",
+      "body": {},
+      "headers": [],
+      "metaSortKey": 14
+    },
+    {
+      "_id": "req_logout",
+      "_type": "request",
+      "parentId": "fld_auth",
+      "name": "Logout",
+      "method": "POST",
+      "url": "{{ base_url }}/auth/logout",
+      "body": {},
+      "headers": [],
+      "metaSortKey": 15
+    },
+    {
+      "_id": "req_session",
+      "_type": "request",
+      "parentId": "fld_auth",
+      "name": "Get Session",
+      "method": "GET",
+      "url": "{{ base_url }}/auth/session",
+      "body": {},
+      "headers": [],
+      "metaSortKey": 16
+    },
+    {
+      "_id": "req_admin_session",
+      "_type": "request",
+      "parentId": "fld_auth",
+      "name": "Get Admin Session",
+      "method": "GET",
+      "url": "{{ base_url }}/auth/admin/session",
+      "body": {},
+      "headers": [],
+      "metaSortKey": 17
+    },
+    {
+      "_id": "fld_events",
+      "_type": "request_group",
+      "parentId": "wrk_eventify",
+      "name": "2. Events",
+      "description": "",
+      "metaSortKey": 20
+    },
+    {
+      "_id": "req_list_events",
+      "_type": "request",
+      "parentId": "fld_events",
+      "name": "List Events",
+      "method": "GET",
+      "url": "{{ base_url }}/events",
+      "body": {},
+      "parameters": [{ "name": "page", "value": "1" }, { "name": "limit", "value": "10" }],
+      "metaSortKey": 21
+    },
+    {
+      "_id": "req_recommended_events",
+      "_type": "request",
+      "parentId": "fld_events",
+      "name": "Recommended Events",
+      "method": "GET",
+      "url": "{{ base_url }}/events/recommended",
+      "body": {},
+      "metaSortKey": 22
+    },
+    {
+      "_id": "req_event_details",
+      "_type": "request",
+      "parentId": "fld_events",
+      "name": "Get Event Details",
+      "method": "GET",
+      "url": "{{ base_url }}/events/{{ event_id }}",
+      "body": {},
+      "metaSortKey": 23
+    },
+    {
+      "_id": "req_create_event",
+      "_type": "request",
+      "parentId": "fld_events",
+      "name": "Create Event",
+      "method": "POST",
+      "url": "{{ base_url }}/events",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"title\": \"New AI Workshop\",\n  \"description\": \"Learning about LLMs\",\n  \"date\": \"2024-12-01T10:00:00Z\",\n  \"location\": \"Tech Hub\",\n  \"category\": \"Technology\",\n  \"maxTickets\": 100,\n  \"price\": 50\n}"
+      },
+      "headers": [{ "name": "Content-Type", "value": "application/json" }],
+      "metaSortKey": 24
+    },
+    {
+      "_id": "req_update_event",
+      "_type": "request",
+      "parentId": "fld_events",
+      "name": "Update Event",
+      "method": "PATCH",
+      "url": "{{ base_url }}/events/{{ event_id }}",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"title\": \"Updated AI Workshop\"\n}"
+      },
+      "headers": [{ "name": "Content-Type", "value": "application/json" }],
+      "metaSortKey": 25
+    },
+    {
+      "_id": "req_delete_event",
+      "_type": "request",
+      "parentId": "fld_events",
+      "name": "Delete Event",
+      "method": "DELETE",
+      "url": "{{ base_url }}/events/{{ event_id }}",
+      "body": {},
+      "metaSortKey": 26
+    },
+    {
+      "_id": "fld_bookings",
+      "_type": "request_group",
+      "parentId": "wrk_eventify",
+      "name": "3. Bookings",
+      "description": "",
+      "metaSortKey": 30
+    },
+    {
+      "_id": "req_create_booking",
+      "_type": "request",
+      "parentId": "fld_bookings",
+      "name": "Create Booking",
+      "method": "POST",
+      "url": "{{ base_url }}/bookings",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"eventId\": \"{{ event_id }}\",\n  \"answers\": []\n}"
+      },
+      "headers": [{ "name": "Content-Type", "value": "application/json" }],
+      "metaSortKey": 31
+    },
+    {
+      "_id": "req_my_bookings",
+      "_type": "request",
+      "parentId": "fld_bookings",
+      "name": "My Bookings",
+      "method": "GET",
+      "url": "{{ base_url }}/bookings/my",
+      "body": {},
+      "metaSortKey": 32
+    },
+    {
+      "_id": "req_get_ticket",
+      "_type": "request",
+      "parentId": "fld_bookings",
+      "name": "Get Ticket PDF/Info",
+      "method": "GET",
+      "url": "{{ base_url }}/bookings/{{ booking_id }}/ticket",
+      "body": {},
+      "metaSortKey": 33
+    },
+    {
+      "_id": "req_cancel_booking",
+      "_type": "request",
+      "parentId": "fld_bookings",
+      "name": "Cancel Booking",
+      "method": "PATCH",
+      "url": "{{ base_url }}/bookings/{{ booking_id }}/cancel",
+      "body": {},
+      "metaSortKey": 34
+    },
+    {
+      "_id": "fld_users",
+      "_type": "request_group",
+      "parentId": "wrk_eventify",
+      "name": "4. User Profile",
+      "description": "",
+      "metaSortKey": 40
+    },
+    {
+      "_id": "req_get_profile",
+      "_type": "request",
+      "parentId": "fld_users",
+      "name": "Get Profile",
+      "method": "GET",
+      "url": "{{ base_url }}/users/profile",
+      "body": {},
+      "metaSortKey": 41
+    },
+    {
+      "_id": "req_update_profile",
+      "_type": "request",
+      "parentId": "fld_users",
+      "name": "Update Profile",
+      "method": "PATCH",
+      "url": "{{ base_url }}/users/profile",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Updated Name\"\n}"
+      },
+      "headers": [{ "name": "Content-Type", "value": "application/json" }],
+      "metaSortKey": 42
+    },
+    {
+      "_id": "req_attendance_history",
+      "_type": "request",
+      "parentId": "fld_users",
+      "name": "Attendance History",
+      "method": "GET",
+      "url": "{{ base_url }}/users/attendance",
+      "body": {},
+      "metaSortKey": 43
+    },
+    {
+      "_id": "fld_organizer",
+      "_type": "request_group",
+      "parentId": "wrk_eventify",
+      "name": "5. Organizer Tools",
+      "description": "",
+      "metaSortKey": 50
+    },
+    {
+      "_id": "req_organizer_stats",
+      "_type": "request",
+      "parentId": "fld_organizer",
+      "name": "Dashboard Stats",
+      "method": "GET",
+      "url": "{{ base_url }}/organizer/dashboard/stats",
+      "body": {},
+      "metaSortKey": 51
+    },
+    {
+      "_id": "req_organizer_events",
+      "_type": "request",
+      "parentId": "fld_organizer",
+      "name": "My Managed Events",
+      "method": "GET",
+      "url": "{{ base_url }}/events/organizer",
+      "body": {},
+      "metaSortKey": 52
+    },
+    {
+      "_id": "req_list_attendees",
+      "_type": "request",
+      "parentId": "fld_organizer",
+      "name": "List Attendees",
+      "method": "GET",
+      "url": "{{ base_url }}/organizer/events/{{ event_id }}/attendees",
+      "body": {},
+      "metaSortKey": 53
+    },
+    {
+      "_id": "req_update_booking_status",
+      "_type": "request",
+      "parentId": "fld_organizer",
+      "name": "Update Booking Status",
+      "method": "PATCH",
+      "url": "{{ base_url }}/organizer/bookings/{{ booking_id }}/status",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"status\": \"APPROVED\"\n}"
+      },
+      "headers": [{ "name": "Content-Type", "value": "application/json" }],
+      "metaSortKey": 54
+    },
+    {
+      "_id": "req_bulk_booking_status",
+      "_type": "request",
+      "parentId": "fld_organizer",
+      "name": "Bulk Update Bookings",
+      "method": "PATCH",
+      "url": "{{ base_url }}/organizer/events/{{ event_id }}/bookings/status",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"status\": \"APPROVED\",\n  \"bookingIds\": [\"{{ booking_id }}\"]\n}"
+      },
+      "headers": [{ "name": "Content-Type", "value": "application/json" }],
+      "metaSortKey": 55
+    },
+    {
+      "_id": "req_delete_booking",
+      "_type": "request",
+      "parentId": "fld_organizer",
+      "name": "Delete Booking (Hard)",
+      "method": "DELETE",
+      "url": "{{ base_url }}/organizer/bookings/{{ booking_id }}",
+      "body": {},
+      "metaSortKey": 56
+    },
+    {
+      "_id": "req_user_public_profile",
+      "_type": "request",
+      "parentId": "fld_users",
+      "name": "Public Profile",
+      "method": "GET",
+      "url": "{{ base_url }}/users/public/{{ user_id }}",
+      "body": {},
+      "metaSortKey": 44
+    },
+    {
+      "_id": "req_health",
+      "_type": "request",
+      "parentId": "wrk_eventify",
+      "name": "0. System Health",
+      "method": "GET",
+      "url": "{{ base_url }}/health",
+      "body": {},
+      "metaSortKey": 1
+    }
+,
+    {
+      "_id": "fld_admin",
+      "_type": "request_group",
+      "parentId": "wrk_eventify",
+      "name": "6. Admin Panel",
+      "description": "",
+      "metaSortKey": 60
+    },
+    {
+      "_id": "req_admin_stats",
+      "_type": "request",
+      "parentId": "fld_admin",
+      "name": "System Stats",
+      "method": "GET",
+      "url": "{{ base_url }}/admin/stats",
+      "body": {},
+      "metaSortKey": 61
+    },
+    {
+      "_id": "req_pending_events",
+      "_type": "request",
+      "parentId": "fld_admin",
+      "name": "Pending Events",
+      "method": "GET",
+      "url": "{{ base_url }}/admin/pending-events",
+      "body": {},
+      "metaSortKey": 62
+    },
+    {
+      "_id": "req_approve_event",
+      "_type": "request",
+      "parentId": "fld_admin",
+      "name": "Approve Event",
+      "method": "PATCH",
+      "url": "{{ base_url }}/admin/approve-event/{{ event_id }}",
+      "body": {},
+      "metaSortKey": 63
+    },
+    {
+      "_id": "req_admin_users",
+      "_type": "request",
+      "parentId": "fld_admin",
+      "name": "List All Users",
+      "method": "GET",
+      "url": "{{ base_url }}/admin/users",
+      "body": {},
+      "metaSortKey": 64
+    },
+    {
+      "_id": "fld_reviews",
+      "_type": "request_group",
+      "parentId": "wrk_eventify",
+      "name": "7. Reviews",
+      "description": "",
+      "metaSortKey": 70
+    },
+    {
+      "_id": "req_create_review",
+      "_type": "request",
+      "parentId": "fld_reviews",
+      "name": "Post Review",
+      "method": "POST",
+      "url": "{{ base_url }}/reviews",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"eventId\": \"{{ event_id }}\",\n  \"rating\": 5,\n  \"comment\": \"Amazing event!\"\n}"
+      },
+      "headers": [{ "name": "Content-Type", "value": "application/json" }],
+      "metaSortKey": 71
+    },
+    {
+      "_id": "req_get_event_reviews",
+      "_type": "request",
+      "parentId": "fld_reviews",
+      "name": "Get Event Reviews",
+      "method": "GET",
+      "url": "{{ base_url }}/reviews/event/{{ event_id }}",
+      "body": {},
+      "metaSortKey": 72
+    },
+    {
+      "_id": "fld_scenarios",
+      "_type": "request_group",
+      "parentId": "wrk_eventify",
+      "name": "🚀 SCENARIOS",
+      "description": "Chained request flows for testing full user journeys.",
+      "metaSortKey": 100
+    },
+    {
+      "_id": "fld_user_journey",
+      "_type": "request_group",
+      "parentId": "fld_scenarios",
+      "name": "User: Booking Flow",
+      "description": "",
+      "metaSortKey": 101
+    },
+    {
+      "_id": "req_sj_login",
+      "_type": "request",
+      "parentId": "fld_user_journey",
+      "name": "1. Login",
+      "method": "POST",
+      "url": "{{ base_url }}/auth/login",
+      "body": { "mimeType": "application/json", "text": "{\n  \"email\": \"{{ user_email }}\",\n  \"password\": \"{{ user_password }}\"\n}" },
+      "headers": [{ "name": "Content-Type", "value": "application/json" }],
+      "metaSortKey": 1
+    },
+    {
+      "_id": "req_sj_list",
+      "_type": "request",
+      "parentId": "fld_user_journey",
+      "name": "2. Find Event",
+      "method": "GET",
+      "url": "{{ base_url }}/events",
+      "body": {},
+      "metaSortKey": 2
+    },
+    {
+      "_id": "req_sj_book",
+      "_type": "request",
+      "parentId": "fld_user_journey",
+      "name": "3. Book Event",
+      "method": "POST",
+      "url": "{{ base_url }}/bookings",
+      "body": { "mimeType": "application/json", "text": "{\n  \"eventId\": \"{{ event_id }}\",\n  \"answers\": []\n}" },
+      "headers": [{ "name": "Content-Type", "value": "application/json" }],
+      "metaSortKey": 3
+    },
+    {
+      "_id": "fld_organizer_journey",
+      "_type": "request_group",
+      "parentId": "fld_scenarios",
+      "name": "Organizer: Event Lifecycle",
+      "description": "",
+      "metaSortKey": 102
+    },
+    {
+      "_id": "req_oj_login",
+      "_type": "request",
+      "parentId": "fld_organizer_journey",
+      "name": "1. Login",
+      "method": "POST",
+      "url": "{{ base_url }}/auth/login",
+      "body": { "mimeType": "application/json", "text": "{\n  \"email\": \"{{ organizer_email }}\",\n  \"password\": \"{{ organizer_password }}\"\n}" },
+      "headers": [{ "name": "Content-Type", "value": "application/json" }],
+      "metaSortKey": 1
+    },
+    {
+      "_id": "req_oj_create",
+      "_type": "request",
+      "parentId": "fld_organizer_journey",
+      "name": "2. Create Event",
+      "method": "POST",
+      "url": "{{ base_url }}/events",
+      "body": { "mimeType": "application/json", "text": "{\n  \"title\": \"Scenario Event\",\n  \"description\": \"Description\",\n  \"date\": \"2024-12-01T10:00:00Z\",\n  \"location\": \"Location\",\n  \"category\": \"Art\",\n  \"maxTickets\": 50,\n  \"price\": 10\n}" },
+      "headers": [{ "name": "Content-Type", "value": "application/json" }],
+      "metaSortKey": 2
+    },
+    {
+      "_id": "req_oj_manage",
+      "_type": "request",
+      "parentId": "fld_organizer_journey",
+      "name": "3. View My Events",
+      "method": "GET",
+      "url": "{{ base_url }}/events/organizer",
+      "body": {},
+      "metaSortKey": 3
+    },
+    {
+      "_id": "fld_admin_journey",
+      "_type": "request_group",
+      "parentId": "fld_scenarios",
+      "name": "Admin: Moderation Flow",
+      "description": "",
+      "metaSortKey": 103
+    },
+    {
+      "_id": "req_aj_login",
+      "_type": "request",
+      "parentId": "fld_admin_journey",
+      "name": "1. Admin Login",
+      "method": "POST",
+      "url": "{{ base_url }}/auth/admin/login",
+      "body": { "mimeType": "application/json", "text": "{\n  \"email\": \"{{ admin_email }}\",\n  \"password\": \"{{ admin_password }}\"\n}" },
+      "headers": [{ "name": "Content-Type", "value": "application/json" }],
+      "metaSortKey": 1
+    },
+    {
+      "_id": "req_aj_pending",
+      "_type": "request",
+      "parentId": "fld_admin_journey",
+      "name": "2. List Pending",
+      "method": "GET",
+      "url": "{{ base_url }}/admin/pending-events",
+      "body": {},
+      "metaSortKey": 2
+    },
+    {
+      "_id": "req_aj_approve",
+      "_type": "request",
+      "parentId": "fld_admin_journey",
+      "name": "3. Approve Event",
+      "method": "PATCH",
+      "url": "{{ base_url }}/admin/approve-event/{{ event_id }}",
+      "body": {},
+      "metaSortKey": 3
+    },
+    {
+      "_id": "fld_misc",
+      "_type": "request_group",
+      "parentId": "wrk_eventify",
+      "name": "8. Misc (Tags & Forms)",
+      "description": "",
+      "metaSortKey": 80
+    },
+    {
+      "_id": "req_list_tags",
+      "_type": "request",
+      "parentId": "fld_misc",
+      "name": "List Tags",
+      "method": "GET",
+      "url": "{{ base_url }}/tags",
+      "body": {},
+      "metaSortKey": 1
+    },
+    {
+      "_id": "req_create_tag",
+      "_type": "request",
+      "parentId": "fld_misc",
+      "name": "Create Tag",
+      "method": "POST",
+      "url": "{{ base_url }}/tags",
+      "body": { "mimeType": "application/json", "text": "{\n  \"name\": \"New Tag\"\n}" },
+      "headers": [{ "name": "Content-Type", "value": "application/json" }],
+      "metaSortKey": 2
+    },
+    {
+      "_id": "req_get_form",
+      "_type": "request",
+      "parentId": "fld_misc",
+      "name": "Get Event Form",
+      "method": "GET",
+      "url": "{{ base_url }}/event-forms/{{ event_id }}",
+      "body": {},
+      "metaSortKey": 3
+    }
+  ]
+}

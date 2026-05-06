@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import { api } from '../api/client';
 import { RegisterInput, ApiResponse, AuthResponse } from '@sebs/shared';
 import { handleApiError } from '../utils/errorHandler';
@@ -8,7 +8,6 @@ import { passwordRules, validateStrongPassword } from '../utils/passwordPolicy';
 
 export default function RegisterPage() {
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const [role, setRole] = useState<'USER' | 'ORGANIZER'>('USER');
   const [formData, setFormData] = useState({
     name: '',
@@ -22,13 +21,8 @@ export default function RegisterPage() {
       const response = await api.post<ApiResponse<AuthResponse>>('/auth/register', data);
       return response.data;
     },
-    onSuccess: (data) => {
-      queryClient.setQueryData(['auth-user'], data.data?.user);
-      if (data.data?.user.role === 'ORGANIZER') {
-        navigate('/organizer');
-      } else {
-        navigate('/dashboard');
-      }
+    onSuccess: () => {
+      navigate('/verify-email');
     },
     onError: (err: unknown) => {
       const apiError = handleApiError(err);

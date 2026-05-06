@@ -1,8 +1,8 @@
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import Header from '../components/layout/Header';
 import { getPublicProfile } from '../api/auth';
-import { subDays, format, isSameDay } from 'date-fns';
+import AttendanceHeatmap from '../components/profile/AttendanceHeatmap';
 
 export default function PublicProfilePage() {
   const { userId } = useParams<{ userId: string }>();
@@ -35,9 +35,9 @@ export default function PublicProfilePage() {
     );
   }
 
-  const { user, history } = data;
-  const today = new Date();
-  const days = Array.from({ length: 100 }).map((_, i) => subDays(today, 99 - i));
+  const { user, history, stats } = data;
+  const pastAttended = history.filter((item: any) => item.attended && new Date(item.date) < new Date());
+  const missed = history.filter((item: any) => item.missed);
 
   return (
     <div className="bg-surface text-on-surface min-h-screen flex flex-col">
@@ -73,35 +73,39 @@ export default function PublicProfilePage() {
               </p>
             </div>
 
-            <div className="bg-surface-container-high/50 p-6 rounded-2xl border border-outline-variant/10 shadow-sm">
-              <h3 className="text-sm font-bold text-on-surface uppercase tracking-[0.2em] mb-4">Activity Heatmap</h3>
-              <div className="flex flex-wrap gap-1">
-                {days.map((day, i) => {
-                  const attendedEvents = history?.filter((h: any) => isSameDay(new Date(h.date), day) && h.attended);
-                  const hasAttended = attendedEvents && attendedEvents.length > 0;
-                  
-                  return (
-                    <div
-                      key={i}
-                      className={`w-3 h-3 rounded-sm ${
-                        hasAttended ? 'bg-primary' : 'bg-surface-container-highest/50'
-                      }`}
-                      title={format(day, 'MMM d, yyyy') + (hasAttended ? ` - ${attendedEvents.length} events` : '')}
-                    />
-                  );
-                })}
-              </div>
-              <div className="mt-4 flex items-center justify-between text-[10px] font-bold uppercase tracking-widest text-outline">
-                <span>Less</span>
-                <div className="flex gap-1">
-                  <div className="w-3 h-3 rounded-sm bg-surface-container-highest/50"></div>
-                  <div className="w-3 h-3 rounded-sm bg-primary/40"></div>
-                  <div className="w-3 h-3 rounded-sm bg-primary/70"></div>
-                  <div className="w-3 h-3 rounded-sm bg-primary"></div>
+            <AttendanceHeatmap history={history} stats={stats} title="Public activity" />
+            <section id="past-events" className="rounded-2xl border border-outline-variant/20 p-5 bg-surface">
+              <h3 className="text-sm font-bold text-on-surface uppercase tracking-[0.2em] mb-4">Past attended events</h3>
+              {pastAttended.length === 0 ? (
+                <p className="text-sm text-on-surface-variant">No attended events yet.</p>
+              ) : (
+                <div className="space-y-3">
+                  {pastAttended.map((item: any) => (
+                    <Link
+                      key={item.id}
+                      to={`/events/${item.eventId}`}
+                      className="block rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 hover:bg-primary/10 transition-colors"
+                    >
+                      <p className="font-semibold">{item.title}</p>
+                      <p className="text-xs text-on-surface-variant">{new Date(item.date).toLocaleDateString()}</p>
+                    </Link>
+                  ))}
                 </div>
-                <span>More</span>
-              </div>
-            </div>
+              )}
+              {missed.length > 0 ? (
+                <div className="mt-5">
+                  <h4 className="text-xs font-bold uppercase tracking-widest text-error mb-2">Missed booked events</h4>
+                  <div className="space-y-2">
+                    {missed.map((item: any) => (
+                      <div key={item.id} className="rounded-xl border border-error/20 bg-error/5 px-4 py-2">
+                        <p className="font-medium">{item.title}</p>
+                        <p className="text-xs text-on-surface-variant">{new Date(item.date).toLocaleDateString()}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+            </section>
           </section>
         </div>
       </main>

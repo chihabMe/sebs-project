@@ -1,0 +1,200 @@
+{
+  "main": {
+    "id": "6fb64bb97e362b1f",
+    "type": "split",
+    "children": [
+      {
+        "id": "608cd01a994e6fe8",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "42b91b53cd5e2299",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "project-rapport.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "project-rapport"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "90bca16ff10d646f",
+    "type": "split",
+    "children": [
+      {
+        "id": "b7f53b9451514eab",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "82cb86ff505d0c86",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Files"
+            }
+          },
+          {
+            "id": "5b3a4094edac09aa",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Search"
+            }
+          },
+          {
+            "id": "584c98ee1e4371c3",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "Bookmarks"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "2ee236ddbc97233f",
+    "type": "split",
+    "children": [
+      {
+        "id": "08254c379bb2b1cd",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "2d6c86b29adf8783",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "project-rapport.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Backlinks for project-rapport"
+            }
+          },
+          {
+            "id": "f24b4affe3f4f6d0",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "project-rapport.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Outgoing links from project-rapport"
+            }
+          },
+          {
+            "id": "8c5c8f5e69ffa67d",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Tags"
+            }
+          },
+          {
+            "id": "190e3b5dba1b6e14",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "All properties"
+            }
+          },
+          {
+            "id": "f26f1808eb5593b7",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "project-rapport.md",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Outline of project-rapport"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false,
+      "bases:Create new base": false
+    }
+  },
+  "active": "42b91b53cd5e2299",
+  "lastOpenFiles": [
+    "apps/backend/tsconfig.build.tsbuildinfo",
+    "apps/backend/dist/scripts/generate-openapi.js.map",
+    "apps/backend/dist/scripts/generate-openapi.js",
+    "apps/backend/dist/scripts/generate-openapi.d.ts",
+    "apps/backend/dist/scripts",
+    "apps/backend/dist/main.d.ts",
+    "apps/backend/dist/main.js",
+    "apps/backend/dist/main.js.map",
+    "apps/backend/dist/common/filters/all-exceptions.filter.js.map",
+    "apps/backend/dist/common/filters/all-exceptions.filter.js",
+    "apps/backend/dist/common/filters/all-exceptions.filter.d.ts"
+  ]
+}

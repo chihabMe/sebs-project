@@ -18,10 +18,11 @@ export default function HomePage() {
     enabled: !!user,
   });
 
-  const { data: upcomingEvents, isLoading: upcomingLoading } = useQuery({
+  const { data: upcomingEventsPayload, isLoading: upcomingLoading } = useQuery({
     queryKey: ['upcoming-events'],
     queryFn: () => getEvents({ search: '' }),
   });
+  const upcomingEvents = upcomingEventsPayload?.data || [];
 
   const handleExplore = () => {
     const params = new URLSearchParams();
@@ -162,7 +163,7 @@ export default function HomePage() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {[1, 2, 3, 4].map(i => <div key={i} className="aspect-[3/4] bg-surface-container-high rounded-3xl animate-pulse" />)}
               </div>
-            ) : upcomingEvents && upcomingEvents.length > 0 ? (
+            ) : upcomingEvents.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {upcomingEvents.slice(0, 8).map(renderEventCard)}
               </div>

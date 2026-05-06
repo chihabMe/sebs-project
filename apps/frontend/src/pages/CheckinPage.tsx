@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { checkIn } from '../api/bookings';
 import { getEvent } from '../api/events';
@@ -13,6 +13,7 @@ export default function CheckinPage() {
   const { id } = useParams();
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const { showToast } = useToast();
+  const hasSubmittedRef = useRef(false);
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [errorMessage, setErrorMessage] = useState('');
 
@@ -23,7 +24,7 @@ export default function CheckinPage() {
   });
 
   useEffect(() => {
-    if (authLoading || eventLoading) return;
+    if (authLoading || eventLoading || hasSubmittedRef.current || !id) return;
     
     if (!isAuthenticated) {
       setStatus('error');
@@ -32,6 +33,7 @@ export default function CheckinPage() {
     }
 
     const performCheckin = async () => {
+      hasSubmittedRef.current = true;
       try {
         await checkIn(id!);
         setStatus('success');

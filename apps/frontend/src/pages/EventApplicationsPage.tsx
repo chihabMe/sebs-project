@@ -7,6 +7,7 @@ import { getEventAttendees, updateBookingStatus } from '../api/organizer';
 import { Button } from '../components/ui/button';
 import { Check, Clock3, User, X } from 'lucide-react';
 import { useToast } from '../components/ui/toast-provider';
+import { PAGINATION } from '../constants/pagination';
 
 export default function EventApplicationsPage() {
   const { id } = useParams();
@@ -26,7 +27,7 @@ export default function EventApplicationsPage() {
       getEventAttendees(id!, {
         status: 'PENDING',
         page,
-        limit: 20,
+        limit: PAGINATION.EVENT_APPLICATIONS,
       }),
     enabled: !!id,
   });

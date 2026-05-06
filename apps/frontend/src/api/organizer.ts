@@ -33,6 +33,7 @@ export interface AttendeeAnswer {
 export interface EventAttendeeBooking {
   id: string;
   status: BookingStatus;
+  attended?: boolean;
   createdAt: string;
   user: AttendeeUser;
   answers: AttendeeAnswer[];
@@ -69,6 +70,7 @@ export interface OrganizerAttendeesResponse<T> {
     confirmed: number;
     rejected: number;
     cancelled: number;
+    attended: number;
   };
 }
 

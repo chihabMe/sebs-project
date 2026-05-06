@@ -36,6 +36,10 @@ export default function LoginPage() {
     },
     onError: (err: unknown) => {
       const apiError = handleApiError(err);
+      if (apiError.message?.toLowerCase().includes('email not verified')) {
+        navigate('/verify-email');
+        return;
+      }
       console.error('Login request failed', {
         message: apiError.message,
         code: apiError.code,

@@ -15,9 +15,10 @@ import {
 } from '../api/organizer';
 import Header from '../components/layout/Header';
 import { Button } from '../components/ui/button';
-import { Check, Download, Link as LinkIcon, RotateCw, Search, Trash2, User, X, QrCode } from 'lucide-react';
+import { Check, Download, ExternalLink, Link as LinkIcon, RotateCw, Search, Trash2, User, X, QrCode } from 'lucide-react';
 import { useToast } from '../components/ui/toast-provider';
 import { BookingStatus } from '@sebs/shared';
+import { PAGINATION } from '../constants/pagination';
 
 type StatusFilter = 'ALL' | BookingStatus;
 
@@ -31,13 +32,13 @@ export default function EventAttendeesPage() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('ALL');
   const [page, setPage] = useState(1);
   const [selectedBookingIds, setSelectedBookingIds] = useState<string[]>([]);
-  const [showQR, setShowQR] = useState(false);
+  const [showQR, setShowQR] = useState(true);
 
   const attendeesQueryParams = {
     search: search.trim() || undefined,
     status: statusFilter === 'ALL' ? undefined : statusFilter,
     page,
-    limit: 20,
+    limit: PAGINATION.EVENT_ATTENDEES,
   };
 
   const { data: event, isLoading: eventLoading } = useQuery({
@@ -195,6 +196,11 @@ export default function EventAttendeesPage() {
     showToast('CSV exported.', 'success');
   };
 
+  const copyCheckInLink = async () => {
+    await navigator.clipboard.writeText(checkInUrl);
+    showToast('Check-in link copied. Show the QR or share this link with confirmed attendees.', 'success');
+  };
+
   if (isLoading) {
     return (
       <div className="bg-surface min-h-screen flex flex-col">
@@ -227,17 +233,36 @@ export default function EventAttendeesPage() {
           </div>
 
           <div className="flex flex-col gap-4">
-            <div className="bg-surface-container-low p-4 rounded-2xl border border-primary/5 shadow-sm">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-[10px] font-bold uppercase tracking-widest text-outline">Check-In</span>
-                <Button variant="ghost" size="sm" className="h-7 px-2 text-[10px]" onClick={() => setShowQR(!showQR)}>
-                  <QrCode className="w-3 h-3 mr-1" /> {showQR ? 'Hide QR' : 'Show QR'}
+            <div className="bg-surface-container-low p-4 rounded-2xl border border-primary/10 shadow-sm">
+              <div className="flex items-start justify-between gap-4 mb-3">
+                <div>
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-outline">Attendee check-in QR</span>
+                  <p className="mt-1 max-w-md text-xs font-medium text-outline">
+                    Display this QR at the entrance. Logged-in users with confirmed bookings scan it to mark attendance.
+                  </p>
+                </div>
+                <Button variant="ghost" size="sm" className="h-8 px-2 text-[10px]" onClick={() => setShowQR(!showQR)}>
+                  <QrCode className="w-3 h-3 mr-1" /> {showQR ? 'Hide' : 'Show'}
                 </Button>
               </div>
               {showQR && (
-                <div className="flex flex-col items-center gap-2 p-4 bg-white rounded-xl mb-4">
-                  <QRCodeSVG value={checkInUrl} size={150} />
-                  <span className="text-xs text-black font-bold mt-2">Scan to check-in</span>
+                <div className="flex flex-col md:flex-row md:items-center gap-4 p-4 bg-white rounded-xl mb-4 border border-primary/10">
+                  <div className="flex flex-col items-center gap-2">
+                    <QRCodeSVG value={checkInUrl} size={170} />
+                    <span className="text-xs text-black font-bold mt-2">Scan to check in</span>
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-black uppercase tracking-widest text-black/70">Check-in URL</p>
+                    <p className="mt-2 break-all rounded-lg bg-black/5 p-3 font-mono text-xs text-black">{checkInUrl}</p>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <Button size="sm" variant="outline" className="bg-white text-black border-black/10 hover:bg-black/5" onClick={copyCheckInLink}>
+                        <LinkIcon className="w-4 h-4 mr-2" /> Copy link
+                      </Button>
+                      <Button size="sm" variant="outline" className="bg-white text-black border-black/10 hover:bg-black/5" onClick={() => window.open(checkInUrl, '_blank', 'noopener,noreferrer')}>
+                        <ExternalLink className="w-4 h-4 mr-2" /> Test page
+                      </Button>
+                    </div>
+                  </div>
                 </div>
               )}
               <div className="flex items-center justify-between mb-2">
@@ -281,8 +306,8 @@ export default function EventAttendeesPage() {
         <section className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
           <SummaryCard label="Pending" value={summary?.pending ?? 0} />
           <SummaryCard label="Confirmed" value={summary?.confirmed ?? 0} />
+          <SummaryCard label="Checked in" value={summary?.attended ?? 0} />
           <SummaryCard label="Rejected" value={summary?.rejected ?? 0} />
-          <SummaryCard label="Cancelled" value={summary?.cancelled ?? 0} />
         </section>
 
         <section className="bg-surface-container-low rounded-3xl p-6 md:p-8 border border-outline-variant/20 shadow-sm">
@@ -360,6 +385,7 @@ export default function EventAttendeesPage() {
                     <th className="pb-4 px-4">Answers</th>
                     <th className="pb-4 px-4">Joined</th>
                     <th className="pb-4 px-4">Status</th>
+                    <th className="pb-4 px-4">Check-in</th>
                     <th className="pb-4 px-4 text-right">Actions</th>
                   </tr>
                 </thead>
@@ -493,6 +519,19 @@ function AttendeeRow({
         }`}>
           {booking.status}
         </span>
+      </td>
+      <td className="py-5 px-4">
+        {booking.status === 'CONFIRMED' ? (
+          <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
+            booking.attended
+              ? 'bg-primary/10 text-primary border border-primary/20'
+              : 'bg-surface-container-high text-outline border border-outline-variant/20'
+          }`}>
+            {booking.attended ? 'Checked in' : 'Waiting'}
+          </span>
+        ) : (
+          <span className="text-[10px] font-bold uppercase tracking-widest text-outline/60">Not eligible</span>
+        )}
       </td>
       <td className="py-5 px-4 text-right">
         <div className="flex items-center justify-end gap-2">

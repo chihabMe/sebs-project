@@ -4,6 +4,7 @@ import LoginPage from './pages/LoginPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 import RegisterPage from './pages/RegisterPage';
+import VerifyEmailPage from './pages/VerifyEmailPage';
 import ProfilePage from './pages/ProfilePage';
 import DashboardPage from './pages/DashboardPage';
 import BrowseEventsPage from './pages/BrowseEventsPage';
@@ -15,6 +16,7 @@ import EventApplicationsPage from './pages/EventApplicationsPage';
 import ManageEventFormPage from './pages/ManageEventFormPage';
 import PublicProfilePage from './pages/PublicProfilePage';
 import CheckinPage from './pages/CheckinPage';
+import UsersSearchPage from './pages/UsersSearchPage';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import Footer from './components/layout/Footer';
 import OnboardingModal from './components/auth/OnboardingModal';
@@ -23,7 +25,7 @@ import { useAuth } from './hooks/useAuth';
 function App() {
   const { user } = useAuth();
   const location = useLocation();
-  const hideFooterRoutes = ['/login', '/register', '/forgot-password', '/reset-password'];
+  const hideFooterRoutes = ['/login', '/register', '/forgot-password', '/reset-password', '/verify-email'];
   const showFooter = !hideFooterRoutes.includes(location.pathname);
 
   const showOnboarding = user && user.role === 'USER' && (!user.tags || user.tags.length === 0);
@@ -37,6 +39,7 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route path="/verify-email" element={<VerifyEmailPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/events" element={<BrowseEventsPage />} />
           <Route path="/events/:id" element={<EventDetailsPage />} />
@@ -48,6 +51,7 @@ function App() {
 
           {/* Attendee Only Routes */}
           <Route path="/dashboard" element={<ProtectedRoute allowedRoles={['USER']}><DashboardPage /></ProtectedRoute>} />
+          <Route path="/users" element={<ProtectedRoute allowedRoles={['USER']}><UsersSearchPage /></ProtectedRoute>} />
 
           {/* Organizer Only Routes */}
           <Route path="/organizer" element={<ProtectedRoute allowedRoles={['ORGANIZER']}><OrganizerDashboardPage /></ProtectedRoute>} />

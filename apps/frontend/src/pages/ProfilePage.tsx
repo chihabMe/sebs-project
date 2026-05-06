@@ -1,13 +1,27 @@
 import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
 import Header from '../components/layout/Header';
 import { useAuth } from '../hooks/useAuth';
 import AttendanceHeatmap from '../components/profile/AttendanceHeatmap';
 import EditProfileForm from '../components/profile/EditProfileForm';
 import ChangePasswordForm from '../components/profile/ChangePasswordForm';
+import DeleteAccountForm from '../components/profile/DeleteAccountForm';
+import { getFollowing } from '../api/auth';
+import { PAGINATION } from '../constants/pagination';
 
 export default function ProfilePage() {
   const { user } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
+  const [followingPage, setFollowingPage] = useState(1);
+  const followingLimit = PAGINATION.FOLLOWING;
+  const { data: followingResponse } = useQuery({
+    queryKey: ['following', followingPage, followingLimit],
+    queryFn: () => getFollowing(followingPage, followingLimit),
+    enabled: !!user,
+  });
+  const following = followingResponse?.data || [];
+  const followingMeta = followingResponse?.meta;
 
   return (
     <div className="bg-surface text-on-surface min-h-screen flex flex-col">
@@ -44,6 +58,56 @@ export default function ProfilePage() {
             </div>
 
             <AttendanceHeatmap />
+
+            <div>
+              <h3 className="text-sm font-bold text-on-surface uppercase tracking-[0.2em] mb-4">Following</h3>
+              <div className="space-y-3">
+                {following.length === 0 ? (
+                  <p className="text-sm text-on-surface-variant">You are not following anyone yet.</p>
+                ) : (
+                  following.map((item) => (
+                    <div key={item.id} className="p-4 rounded-2xl border border-outline-variant/20 bg-surface flex items-center justify-between gap-3">
+                      <div className="min-w-0">
+                        <Link to={`/users/${item.id}`} className="font-semibold hover:text-primary transition-colors">
+                          {item.name}
+                        </Link>
+                        <p className="text-xs text-on-surface-variant uppercase tracking-widest mt-1">{item.role}</p>
+                      </div>
+                      {item.role === 'ORGANIZER' ? (
+                        <Link to={`/events?organizerId=${item.id}`} className="text-xs font-semibold text-primary hover:underline">
+                          See events
+                        </Link>
+                      ) : (
+                        <Link to={`/users/${item.id}#past-events`} className="text-xs font-semibold text-primary hover:underline">
+                          See past attended events
+                        </Link>
+                      )}
+                    </div>
+                  ))
+                )}
+              </div>
+              <div className="mt-4 flex items-center justify-between">
+                <p className="text-xs text-on-surface-variant">
+                  {followingMeta ? `Page ${followingMeta.page} of ${followingMeta.totalPages} • ${followingMeta.total} following` : ''}
+                </p>
+                <div className="flex items-center gap-2">
+                  <button
+                    className="px-3 py-1.5 rounded-lg border border-outline-variant/30 text-xs font-semibold disabled:opacity-50"
+                    disabled={!followingMeta || followingPage <= 1}
+                    onClick={() => setFollowingPage((prev) => Math.max(1, prev - 1))}
+                  >
+                    Previous
+                  </button>
+                  <button
+                    className="px-3 py-1.5 rounded-lg border border-outline-variant/30 text-xs font-semibold disabled:opacity-50"
+                    disabled={!followingMeta || followingPage >= followingMeta.totalPages}
+                    onClick={() => setFollowingPage((prev) => prev + 1)}
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            </div>
             
             {isEditing ? (
               <EditProfileForm onSuccess={() => setIsEditing(false)} />
@@ -62,6 +126,11 @@ export default function ProfilePage() {
         <div className="mt-8">
           <ChangePasswordForm />
         </div>
+        {user?.role === 'USER' ? (
+          <div className="mt-8">
+            <DeleteAccountForm />
+          </div>
+        ) : null}
       </main>
     </div>
   );

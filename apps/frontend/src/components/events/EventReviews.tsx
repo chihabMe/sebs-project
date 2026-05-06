@@ -6,6 +6,7 @@ import { Button } from '../ui/button';
 import { Star, MessageCircleHeart } from 'lucide-react';
 import { useToast } from '../ui/toast-provider';
 import { format } from 'date-fns';
+import { PAGINATION } from '../../constants/pagination';
 
 interface EventReviewsProps {
   eventId: string;
@@ -19,11 +20,13 @@ export default function EventReviews({ eventId, hasAttended }: EventReviewsProps
 
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState('');
+  const [page, setPage] = useState(1);
+  const limit = PAGINATION.EVENT_REVIEWS;
 
   const { data: reviewsData, isLoading } = useQuery({
-    queryKey: ['event-reviews', eventId],
+    queryKey: ['event-reviews', eventId, page, limit],
     queryFn: async () => {
-      const response = await api.get(`/reviews/event/${eventId}`);
+      const response = await api.get(`/reviews/event/${eventId}`, { params: { page, limit } });
       return response.data.data;
     },
   });
@@ -45,8 +48,10 @@ export default function EventReviews({ eventId, hasAttended }: EventReviewsProps
   });
 
   const reviews = reviewsData?.reviews || [];
+  const meta = reviewsData?.meta;
   const stats = reviewsData?.stats || { averageRating: 0, totalReviews: 0 };
   const canReview = hasAttended && !!user;
+  const canOpenReviewForm = !!user;
 
   return (
     <section className="space-y-8 mt-16 pt-16 border-t border-primary/10">
@@ -85,10 +90,14 @@ export default function EventReviews({ eventId, hasAttended }: EventReviewsProps
             </div>
           </div>
 
-          {canReview && (
+          {canOpenReviewForm && (
             <form
               onSubmit={(e) => {
                 e.preventDefault();
+                if (!hasAttended) {
+                  showToast('You must attend this event before posting a review.', 'error');
+                  return;
+                }
                 submitReviewMutation.mutate();
               }}
               className="mt-5 space-y-4"
@@ -180,6 +189,21 @@ export default function EventReviews({ eventId, hasAttended }: EventReviewsProps
           </div>
         )}
       </div>
+      {meta ? (
+        <div className="flex items-center justify-between">
+          <p className="text-xs text-outline font-semibold">
+            Page {meta.page} of {meta.totalPages}
+          </p>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" disabled={meta.page <= 1} onClick={() => setPage((current: number) => Math.max(1, current - 1))}>
+              Previous
+            </Button>
+            <Button variant="outline" size="sm" disabled={meta.page >= meta.totalPages} onClick={() => setPage((current: number) => current + 1)}>
+              Next
+            </Button>
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 }

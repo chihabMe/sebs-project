@@ -134,9 +134,15 @@ export function DashboardPage() {
   });
 
   const toggleBanMutation = useMutation({
-    mutationFn: ({ id, isBanned }: { id: string; isBanned: boolean }) => updateAdminUser(id, { isBanned }),
+    mutationFn: ({ id, ...payload }: { id: string; isBanned?: boolean; isActive?: boolean }) => updateAdminUser(id, payload),
     onSuccess: async (_result, variables) => {
-      setNotice({ kind: 'success', message: variables.isBanned ? 'User banned successfully.' : 'User restored successfully.' });
+      let message = 'User updated successfully.';
+      if (variables.isBanned !== undefined) {
+        message = variables.isBanned ? 'User banned successfully.' : 'User restored successfully.';
+      } else if (variables.isActive !== undefined) {
+        message = variables.isActive ? 'User activated successfully.' : 'User deactivated successfully.';
+      }
+      setNotice({ kind: 'success', message });
       await refreshAdminData();
     },
     onError: (error) => {
@@ -369,6 +375,7 @@ export function DashboardPage() {
                       <TableHead>User</TableHead>
                       <TableHead>Role</TableHead>
                       <TableHead>Status</TableHead>
+                      <TableHead>Verification</TableHead>
                       <TableHead>Created</TableHead>
                       <TableHead className="text-right">Action</TableHead>
                     </TableRow>
@@ -393,25 +400,43 @@ export function DashboardPage() {
                               {item.isBanned ? 'Banned' : 'Active'}
                             </span>
                           </TableCell>
+                          <TableCell>
+                            <span
+                              className={`rounded-md px-2 py-1 text-xs font-medium ${
+                                item.isActive ? 'bg-success/10 text-success' : 'bg-warning/10 text-warning'
+                              }`}
+                            >
+                              {item.isActive ? 'Verified' : 'Unverified'}
+                            </span>
+                          </TableCell>
                           <TableCell>{formatDate(item.createdAt)}</TableCell>
                           <TableCell className="text-right">
                             {item.role === 'ADMIN' ? (
                               <span className="text-xs font-medium text-muted">Protected</span>
                             ) : (
-                              <Button
-                                size="sm"
-                                variant={item.isBanned ? 'outline' : 'destructive'}
-                                onClick={() => toggleBanMutation.mutate({ id: item.id, isBanned: !item.isBanned })}
-                              >
-                                {item.isBanned ? 'Restore' : 'Ban'}
-                              </Button>
+                              <div className="flex justify-end gap-2">
+                                <Button
+                                  size="sm"
+                                  variant={item.isActive ? 'outline' : 'default'}
+                                  onClick={() => toggleBanMutation.mutate({ id: item.id, isActive: !item.isActive })}
+                                >
+                                  {item.isActive ? 'Deactivate' : 'Activate'}
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant={item.isBanned ? 'outline' : 'destructive'}
+                                  onClick={() => toggleBanMutation.mutate({ id: item.id, isBanned: !item.isBanned })}
+                                >
+                                  {item.isBanned ? 'Restore' : 'Ban'}
+                                </Button>
+                              </div>
                             )}
                           </TableCell>
                         </TableRow>
                       ))
                     ) : (
                       <TableRow>
-                        <TableCell colSpan={5} className="py-8 text-center text-sm text-muted">
+                        <TableCell colSpan={6} className="py-8 text-center text-sm text-muted">
                           No users match the current filters.
                         </TableCell>
                       </TableRow>

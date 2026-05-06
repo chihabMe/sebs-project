@@ -19,6 +19,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '../components/ui/popove
 import { Skeleton } from '../components/ui/skeleton';
 import { format } from 'date-fns';
 import { Calendar as CalendarIcon, Search, X } from 'lucide-react';
+import { PAGINATION } from '../constants/pagination';
 
 export default function BrowseEventsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -38,13 +39,17 @@ export default function BrowseEventsPage() {
     if (searchParams.get('category') && searchParams.get('category') !== 'All Events') initial.category = searchParams.get('category')!;
     if (searchParams.get('tag') && searchParams.get('tag') !== 'All Tags') initial.tag = searchParams.get('tag')!;
     if (searchParams.get('date')) initial.date = searchParams.get('date')!;
+    if (searchParams.get('organizerId')) initial.organizerId = searchParams.get('organizerId')!;
     return initial;
   });
+  const [page, setPage] = useState(1);
 
-  const { data: events, isLoading } = useQuery({
-    queryKey: ['events', activeFilters],
-    queryFn: () => getEvents(activeFilters),
+  const { data: eventsPayload, isLoading } = useQuery({
+    queryKey: ['events', activeFilters, page],
+    queryFn: () => getEvents({ ...activeFilters, page, limit: PAGINATION.EVENTS_BROWSE }),
   });
+  const events = eventsPayload?.data || [];
+  const meta = eventsPayload?.meta;
 
   const { data: tagsResponse } = useQuery({
     queryKey: ['tags'],
@@ -59,8 +64,10 @@ export default function BrowseEventsPage() {
     if (category && category !== 'All Events') filters.category = category;
     if (tag && tag !== 'All Tags') filters.tag = tag;
     if (date) filters.date = format(date, 'yyyy-MM-dd');
+    if (searchParams.get('organizerId')) filters.organizerId = searchParams.get('organizerId')!;
     
     setActiveFilters(filters);
+    setPage(1);
     
     // Update URL params
     setSearchParams(filters);
@@ -72,8 +79,11 @@ export default function BrowseEventsPage() {
     setTag('All Tags');
     setDate(undefined);
     setActiveFilters({});
+    setPage(1);
     setSearchParams({});
   };
+
+  const isOrganizerFiltered = Boolean(activeFilters.organizerId);
 
   return (
     <div className="bg-surface text-on-surface min-h-screen flex flex-col selection:bg-primary-container selection:text-on-primary-container">
@@ -169,11 +179,13 @@ export default function BrowseEventsPage() {
         <div className="flex flex-col sm:flex-row justify-between items-baseline mb-8 gap-4">
           <div>
             <h1 className="text-4xl font-black tracking-tight font-headline text-primary">Vibe Discovery</h1>
-            <p className="text-outline font-medium mt-1">Explore curated experiences matching your craft.</p>
+            <p className="text-outline font-medium mt-1">
+              {isOrganizerFiltered ? 'Showing events from a specific organizer.' : 'Explore curated experiences matching your craft.'}
+            </p>
           </div>
           <div className="bg-primary/5 px-4 py-2 rounded-full border border-primary/10">
             <p className="text-primary text-sm font-bold">
-              {isLoading ? 'Scanning Archive...' : `Showing ${events?.length || 0} events`}
+              {isLoading ? 'Scanning Archive...' : `Showing ${meta?.total ?? events.length} events`}
             </p>
           </div>
         </div>
@@ -196,7 +208,7 @@ export default function BrowseEventsPage() {
                 </div>
               </div>
             ))
-          ) : events && events.length > 0 ? (
+          ) : events.length > 0 ? (
             events.map((event: any) => (
               <div key={event.id} className="group relative bg-surface-container-lowest rounded-2xl overflow-hidden shadow-[0_4px_24px_rgba(62,0,0,0.04)] hover:shadow-[0_24px_48px_rgba(62,0,0,0.08)] transition-all duration-500 border border-transparent hover:border-primary/5">
                 <div className="aspect-[16/10] overflow-hidden relative">
@@ -256,6 +268,21 @@ export default function BrowseEventsPage() {
             </div>
           )}
         </div>
+        {meta ? (
+          <div className="mt-8 flex items-center justify-between">
+            <p className="text-xs text-outline font-semibold">
+              Page {meta.page} of {meta.totalPages}
+            </p>
+            <div className="flex gap-2">
+              <Button variant="outline" disabled={meta.page <= 1} onClick={() => setPage((current) => Math.max(1, current - 1))}>
+                Previous
+              </Button>
+              <Button variant="outline" disabled={meta.page >= meta.totalPages} onClick={() => setPage((current) => current + 1)}>
+                Next
+              </Button>
+            </div>
+          </div>
+        ) : null}
       </main>
     </div>
   );

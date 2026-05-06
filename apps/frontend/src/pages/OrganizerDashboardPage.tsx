@@ -21,8 +21,9 @@ import {
   Layers,
 } from 'lucide-react';
 import { useToast } from '../components/ui/toast-provider';
+import { PAGINATION } from '../constants/pagination';
 
-const PAGE_SIZE = 8;
+const PAGE_SIZE = PAGINATION.ORGANIZER_DASHBOARD_EVENTS;
 
 type ApprovalFilter = 'ALL' | 'APPROVED' | 'PENDING';
 type StatusFilter = 'ALL' | EventStatus;
@@ -328,12 +329,36 @@ function DesktopTable({
               </td>
               <td className="py-5 px-4">
                 <div className="flex justify-end gap-2">
-                  <Link to={`/events/${event.id}`} title="Preview">
-                    <Button variant="ghost" size="icon" className="h-9 w-9"><Eye className="w-4 h-4" /></Button>
-                  </Link>
-                  <Link to={`/organizer/events/${event.id}/attendees`} title="Attendees">
-                    <Button variant="outline" size="icon" className="h-9 w-9 border-secondary/20 text-secondary"><Users className="w-4 h-4" /></Button>
-                  </Link>
+                  {event.isApproved ? (
+                    <Link to={`/events/${event.id}`} title="Preview">
+                      <Button variant="ghost" size="icon" className="h-9 w-9"><Eye className="w-4 h-4" /></Button>
+                    </Link>
+                  ) : (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-9 w-9 opacity-40 cursor-not-allowed"
+                      disabled
+                      title="Preview is available after admin approval"
+                    >
+                      <Eye className="w-4 h-4" />
+                    </Button>
+                  )}
+                  {event.isApproved ? (
+                    <Link to={`/organizer/events/${event.id}/attendees`} title="Attendees">
+                      <Button variant="outline" size="icon" className="h-9 w-9 border-secondary/20 text-secondary"><Users className="w-4 h-4" /></Button>
+                    </Link>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-9 w-9 border-secondary/20 text-secondary opacity-40 cursor-not-allowed"
+                      disabled
+                      title="Attendees are available after admin approval"
+                    >
+                      <Users className="w-4 h-4" />
+                    </Button>
+                  )}
                   <Link to={`/organizer/events/${event.id}/applications`} title="Applications">
                     <Button variant="outline" size="icon" className="h-9 w-9 border-primary/20 text-primary"><ClipboardCheck className="w-4 h-4" /></Button>
                   </Link>
@@ -399,8 +424,36 @@ function MobileCards({
             </span>
           </div>
           <div className="grid grid-cols-4 gap-2">
-            <Link to={`/events/${event.id}`}><Button variant="ghost" size="sm" className="w-full"><Eye className="w-4 h-4" /></Button></Link>
-            <Link to={`/organizer/events/${event.id}/attendees`}><Button variant="outline" size="sm" className="w-full"><Users className="w-4 h-4" /></Button></Link>
+            {event.isApproved ? (
+              <Link to={`/events/${event.id}`}>
+                <Button variant="ghost" size="sm" className="w-full"><Eye className="w-4 h-4" /></Button>
+              </Link>
+            ) : (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-full opacity-40 cursor-not-allowed"
+                disabled
+                title="Preview is available after admin approval"
+              >
+                <Eye className="w-4 h-4" />
+              </Button>
+            )}
+            {event.isApproved ? (
+              <Link to={`/organizer/events/${event.id}/attendees`}>
+                <Button variant="outline" size="sm" className="w-full"><Users className="w-4 h-4" /></Button>
+              </Link>
+            ) : (
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full opacity-40 cursor-not-allowed"
+                disabled
+                title="Attendees are available after admin approval"
+              >
+                <Users className="w-4 h-4" />
+              </Button>
+            )}
             <Link to={`/organizer/events/${event.id}/applications`}><Button variant="outline" size="sm" className="w-full"><ClipboardCheck className="w-4 h-4" /></Button></Link>
             <Button variant="outline" size="sm" className="w-full" onClick={() => onStatusAction(event.id, 'COMPLETED')} disabled={isMutating}><CheckCircle2 className="w-4 h-4" /></Button>
           </div>
